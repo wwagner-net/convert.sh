@@ -195,3 +195,4 @@ $RECYCLE.BIN/
 # End of https://www.toptal.com/developers/gitignore/api/macos,windows,phpstorm,visualstudiocode
 *.mp4
 *.webm
+.idea
