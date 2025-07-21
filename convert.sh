@@ -1,4 +1,3 @@
-
 #!/bin/bash
 #
 # MP4 zu WebM Konverter
