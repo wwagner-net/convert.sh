@@ -76,3 +76,16 @@ Die quadratische 500px-Version verwendet intelligentes Zuschneiden:
 - Die Konvertierung kann je nach Dateigröße und Systemleistung einige Zeit dauern
 - WebM-Dateien sind in der Regel deutlich kleiner als MP4-Dateien
 - Das Seitenverhältnis wird automatisch beibehalten
+
+## Nutzung im HTML (Beispiel)
+
+```html
+<video autoplay muted playsinline loop preload="metadata" class="video-bg" poster="thumbnail.jpg">
+    <source media="(min-width: 1500px)" src="input_original.webm" type="video/webm">
+    <source media="(min-width: 1100px)" src="input_1400px.webm" type="video/webm">
+    <source media="(min-width: 700px)" src="input_1000px.webm" type="video/webm">
+    <source src="input_500px.webm" type="video/webm">
+    <!-- MP4 Video als Fallback für Uralt-Browser wie IE11 -->
+    <source src="input.mp4" type="video/mp4">
+</video>
+```
