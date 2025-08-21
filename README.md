@@ -6,6 +6,31 @@ Ein Bash-Skript zur automatischen Konvertierung von MP4-Videos in WebM-Format mi
 Wolfgang Wagner (wwagner@wwagner.net)  
 Version: 1.2.0
 
+## Was ist WebM?
+
+WebM ist ein offenes, lizenzfreies Videoformat, das von Google entwickelt wurde und speziell für das Web optimiert ist. Es basiert auf dem VP8/VP9-Videocodec und dem Opus-Audiocodec, was zu einer ausgezeichneten Komprimierung bei hoher Qualität führt.
+
+### Vorteile von WebM
+
+- **Bessere Komprimierung**: Bis zu 30-50% kleinere Dateigrößen als MP4 bei vergleichbarer Qualität
+- **Lizenzfrei**: Keine Lizenzgebühren oder Patentbeschränkungen
+- **Web-optimiert**: Entwickelt speziell für Streaming und schnelles Laden im Browser
+- **Hohe Qualität**: VP9-Codec bietet bessere Qualität bei geringerer Bandbreite
+- **Progressive Downloads**: Ermöglicht sofortiges Abspielen während des Ladens
+
+### Browser-Unterstützung (Stand 2025)
+
+WebM wird von nahezu allen modernen Browsern unterstützt mit einer Browser-Kompatibilitätsbewertung von 92/100:
+
+- **Chrome**: Vollständige Unterstützung (alle Versionen seit 25)
+- **Firefox**: Vollständige Unterstützung (alle Versionen seit 28)  
+- **Edge**: Vollständige Unterstützung (alle Versionen seit 79)
+- **Safari**: Vollständige Unterstützung seit Version 16.5, teilweise seit 12.1
+- **Opera**: Vollständige Unterstützung (alle Versionen seit 16)
+- **Mobile Browser**: Vollständige Unterstützung auf Android Chrome/Firefox und Safari iOS 17.5+
+
+**Marktabdeckung**: Etwa 92-95% aller Webnutzer können WebM abspielen (Stand 2025)
+
 ## Beschreibung
 
 Das Skript konvertiert alle MP4-Dateien aus dem `input/` Ordner in WebM-Format mit vier verschiedenen Auflösungen und speichert sie im `output/` Ordner:
