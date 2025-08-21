@@ -4,11 +4,11 @@ Ein Bash-Skript zur automatischen Konvertierung von MP4-Videos in WebM-Format mi
 
 ## Autor
 Wolfgang Wagner (wwagner@wwagner.net)  
-Version: 1.1.0
+Version: 1.2.0
 
 ## Beschreibung
 
-Das Skript konvertiert alle MP4-Dateien im aktuellen Verzeichnis in WebM-Format mit vier verschiedenen Auflösungen:
+Das Skript konvertiert alle MP4-Dateien aus dem `input/` Ordner in WebM-Format mit vier verschiedenen Auflösungen und speichert sie im `output/` Ordner:
 - **Original**: Behält die ursprüngliche Auflösung bei
 - **1400px**: Skaliert auf 1400px Breite
 - **1000px**: Skaliert auf 1000px Breite  
@@ -23,11 +23,33 @@ Alle Versionen verwenden den VP9-Codec für Video und Opus für Audio.
 - **FFmpeg** muss installiert sein
 - **Bash** (Linux/macOS/WSL)
 
+### FFmpeg Installation
+
+#### macOS (empfohlen via Homebrew):
+```bash
+# Homebrew installieren (falls noch nicht vorhanden)
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# FFmpeg installieren
+brew install ffmpeg
+```
+
+#### Linux (Ubuntu/Debian):
+```bash
+sudo apt update
+sudo apt install ffmpeg
+```
+
+#### Windows (WSL):
+```bash
+sudo apt update
+sudo apt install ffmpeg
+```
+
 ## Verwendung
 
-1. Lege alle MP4-Dateien, die konvertiert werden sollen, in ein Verzeichnis
-2. Kopiere das `convert.sh` Skript in dasselbe Verzeichnis
-3. Führe das Skript aus:
+1. Lege alle MP4-Dateien, die konvertiert werden sollen, in den `input/` Ordner
+2. Führe das Skript aus (die Ordner `input/` und `output/` werden automatisch erstellt):
 
 ### Standard-Modus:
 
@@ -45,10 +67,25 @@ oder
 
 - `--square` oder `-s`: Erstellt zusätzlich eine quadratische 1:1 Version der 500px Variante
 
+## Ordnerstruktur
+
+```
+webmconverter/
+├── convert.sh
+├── input/          # Hier MP4-Dateien ablegen
+│   └── video.mp4
+└── output/         # Hier werden WebM-Dateien erstellt
+    ├── video_original.webm
+    ├── video_1400px.webm
+    ├── video_1000px.webm
+    ├── video_500px.webm
+    └── video_500px_square.webm  # (nur mit --square)
+```
+
 ## Ausgabe
 
 ### Standard-Ausgabe
-Für jede `input.mp4` Datei werden folgende WebM-Dateien erstellt:
+Für jede `input.mp4` Datei im `input/` Ordner werden folgende WebM-Dateien im `output/` Ordner erstellt:
 - `input_original.webm` - Originalauflösung
 - `input_1400px.webm` - 1400px Breite
 - `input_1000px.webm` - 1000px Breite
@@ -81,11 +118,11 @@ Die quadratische 500px-Version verwendet intelligentes Zuschneiden:
 
 ```html
 <video autoplay muted playsinline loop preload="metadata" class="video-bg" poster="thumbnail.jpg">
-    <source media="(min-width: 1500px)" src="input_original.webm" type="video/webm">
-    <source media="(min-width: 1100px)" src="input_1400px.webm" type="video/webm">
-    <source media="(min-width: 700px)" src="input_1000px.webm" type="video/webm">
-    <source src="input_500px.webm" type="video/webm">
+    <source media="(min-width: 1500px)" src="output/input_original.webm" type="video/webm">
+    <source media="(min-width: 1100px)" src="output/input_1400px.webm" type="video/webm">
+    <source media="(min-width: 700px)" src="output/input_1000px.webm" type="video/webm">
+    <source src="output/input_500px.webm" type="video/webm">
     <!-- MP4 Video als Fallback für Uralt-Browser wie IE11 -->
-    <source src="input.mp4" type="video/mp4">
+    <source src="input/input.mp4" type="video/mp4">
 </video>
 ```

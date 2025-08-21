@@ -8,10 +8,12 @@ This is a WebM Converter utility by Wolfgang Wagner - a simple but effective Bas
 
 ## Architecture
 
-**Single-script architecture**: The entire functionality is contained in `convert.sh` - a standalone Bash script that processes MP4 files in the current directory.
+**Single-script architecture**: The entire functionality is contained in `convert.sh` - a standalone Bash script that processes MP4 files from an input directory and outputs to a separate directory.
 
 **Core functionality**:
-- Processes all `.mp4` files in the working directory
+- Reads all `.mp4` files from the `input/` directory
+- Outputs converted files to the `output/` directory
+- Automatically creates `input/` and `output/` directories if they don't exist
 - Creates 4 standard WebM variants: original, 1400px, 1000px, 500px
 - Optional square 500x500px variant with `--square` or `-s` flag
 - Uses VP9 video codec and Opus audio codec for optimal compression
@@ -33,19 +35,29 @@ bash ./convert.sh -s
 
 ## File Structure
 
-- `convert.sh` - Main conversion script
-- `README.md` - Comprehensive German documentation
-- `.gitignore` - Excludes video files (*.mp4, *.webm) and IDE files
-- Sample video files (ignored by git)
+```
+webmconverter/
+├── convert.sh          # Main conversion script
+├── README.md          # Comprehensive German documentation  
+├── CLAUDE.md          # This file
+├── .gitignore         # Excludes video files and IDE files
+├── input/             # Directory for source MP4 files
+└── output/            # Directory for converted WebM files
+```
 
 ## Dependencies
 
 - **FFmpeg** - Required for video conversion
+  - macOS: `brew install ffmpeg`
+  - Linux: `sudo apt install ffmpeg`
 - **Bash** - Script runtime (Linux/macOS/WSL)
 
-## Output Naming Convention
+## Directory Structure & Output
 
-For input file `example.mp4`, the script generates:
+**Input**: Place MP4 files in `input/` directory
+**Output**: WebM files are created in `output/` directory
+
+For input file `input/example.mp4`, the script generates in `output/`:
 - `example_original.webm` 
 - `example_1400px.webm`
 - `example_1000px.webm` 
@@ -62,5 +74,7 @@ For input file `example.mp4`, the script generates:
 
 - No package.json or build system - pure Bash script
 - No tests - functional script for direct execution
-- Git ignores all video files to keep repository clean
+- Git ignores all video files (*.mp4, *.webm) to keep repository clean
+- Script validates input directory exists and contains MP4 files
 - Documentation is primarily in German (README.md)
+- Version 1.2.0 introduced input/output directory structure
