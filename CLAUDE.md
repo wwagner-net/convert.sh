@@ -4,20 +4,23 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a WebM Converter utility by Wolfgang Wagner - a simple but effective Bash script that converts MP4 videos to WebM format with multiple resolution options. The project focuses on creating optimized WebM videos for web usage with different viewport sizes.
+This is a WebM Converter utility by Wolfgang Wagner - an intelligent Bash script that converts MP4 videos to WebM format with automatic size optimization. The project focuses on creating optimized WebM videos that are guaranteed to be smaller than the original MP4, with intelligent resolution handling to avoid unnecessary upscaling.
 
 ## Architecture
 
 **Single-script architecture**: The entire functionality is contained in `convert.sh` - a standalone Bash script that processes MP4 files from an input directory and outputs to a separate directory.
 
-**Core functionality**:
+**Core functionality (Version 1.3.0)**:
 - Reads all `.mp4` files from the `input/` directory
 - Outputs converted files to the `output/` directory
 - Automatically creates `input/` and `output/` directories if they don't exist
-- Creates 4 standard WebM variants: original, 1400px, 1000px, 500px
+- **Intelligent resolution handling**: Only creates versions smaller than original (prevents upscaling)
+- **Automatic file size control**: Guarantees WebM files ≤ MP4 size through adaptive CRF adjustment
+- Creates variants: original, 1400px, 1000px, 500px (only if source is larger)
 - Optional square 500x500px variant with `--square` or `-s` flag
-- Uses VP9 video codec and Opus audio codec for optimal compression
-- Quality settings: CRF 32 for larger sizes, CRF 33 for 500px variants
+- Uses optimized VP9 video codec and Opus audio codec
+- **Adaptive CRF values**: Automatically increased until WebM < MP4 or max CRF 50 reached
+- **Upscaling prevention**: Detects video width and skips larger resolution targets
 
 ## Usage Commands
 
@@ -64,11 +67,31 @@ For input file `input/example.mp4`, the script generates in `output/`:
 - `example_500px.webm`
 - `example_500px_square.webm` (with --square flag)
 
-## Quality Settings
+## Quality Settings (Version 1.3.0)
 
-- **Original/1400px/1000px**: VP9 codec, CRF 32, Opus audio
-- **500px variants**: VP9 codec, CRF 33 (higher compression), Opus audio
-- **Square variant**: Intelligent cropping with `scale=500:500:force_original_aspect_ratio=increase,crop=500:500`
+### Adaptive CRF System
+- **Original**: Starting CRF 30, automatically adjusted upward if WebM > MP4
+- **1400px**: Starting CRF 32, automatically adjusted upward if WebM > MP4
+- **1000px**: Starting CRF 33, automatically adjusted upward if WebM > MP4  
+- **500px**: Starting CRF 35, automatically adjusted upward if WebM > MP4
+- **Maximum CRF**: 50 (script skips conversion if still not smaller than MP4)
+
+### Technical Optimizations
+- **VP9 codec** with modern parameters:
+  - `threads 8`: Multi-core performance optimization
+  - `speed 2`: Balanced quality/encoding speed
+  - `tile-columns 1`: Optimized for portrait videos
+  - `row-mt 1`: Enhanced multi-threading
+- **Opus audio**: 128kbps for optimal audio quality
+- **Format enforcement**: `-f webm` ensures proper container format
+
+### Intelligent Size Control
+The `convert_with_size_check()` function implements iterative optimization:
+1. Initial encoding with base CRF value
+2. File size comparison with original MP4
+3. Automatic CRF increment (+3) if WebM larger than MP4
+4. Repeat until WebM ≤ MP4 or maximum CRF reached
+5. Skip conversion if WebM cannot be made smaller than MP4
 
 ## Development Notes
 
@@ -78,3 +101,9 @@ For input file `input/example.mp4`, the script generates in `output/`:
 - Script validates input directory exists and contains MP4 files
 - Documentation is primarily in German (README.md)
 - Version 1.2.0 introduced input/output directory structure
+- **Version 1.3.0 major improvements**:
+  - Automatic file size control with iterative CRF adjustment
+  - Intelligent upscaling prevention through video width detection
+  - Enhanced VP9 encoding parameters for better compression
+  - Robust error handling and detailed progress feedback
+  - Guaranteed smaller WebM output than MP4 input

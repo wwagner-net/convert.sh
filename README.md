@@ -4,7 +4,7 @@ Ein Bash-Skript zur automatischen Konvertierung von MP4-Videos in WebM-Format mi
 
 ## Autor
 Wolfgang Wagner (wwagner@wwagner.net)  
-Version: 1.2.0
+Version: 1.3.0
 
 ## Was ist WebM?
 
@@ -33,15 +33,21 @@ WebM wird von nahezu allen modernen Browsern unterstützt mit einer Browser-Komp
 
 ## Beschreibung
 
-Das Skript konvertiert alle MP4-Dateien aus dem `input/` Ordner in WebM-Format mit vier verschiedenen Auflösungen und speichert sie im `output/` Ordner:
+Das Skript konvertiert alle MP4-Dateien aus dem `input/` Ordner in WebM-Format mit intelligenter Größenoptimierung:
 - **Original**: Behält die ursprüngliche Auflösung bei
-- **1400px**: Skaliert auf 1400px Breite
-- **1000px**: Skaliert auf 1000px Breite  
-- **500px**: Skaliert auf 500px Breite  
+- **1400px**: Skaliert auf 1400px Breite (nur wenn Original > 1400px)
+- **1000px**: Skaliert auf 1000px Breite (nur wenn Original > 1000px)
+- **500px**: Skaliert auf 500px Breite (nur wenn Original > 500px)
 - **500px Square** (optional): Skaliert auf 500x500 Pixel im 1:1-Format
 
+### 🆕 Neue Features in Version 1.3.0
 
-Alle Versionen verwenden den VP9-Codec für Video und Opus für Audio.
+- **Automatische Dateigröße-Kontrolle**: Garantiert kleinere WebM-Dateien als das Original MP4
+- **Intelligente Upscaling-Vermeidung**: Erstellt nur Versionen kleiner als das Original
+- **Adaptive CRF-Anpassung**: Erhöht automatisch die Kompression bis WebM < MP4
+- **Optimierte VP9-Einstellungen**: Bessere Performance und Qualität für alle Videoformate
+
+Alle Versionen verwenden den VP9-Codec für Video und Opus für Audio mit modernsten Optimierungen.
 
 ## Voraussetzungen
 
@@ -121,10 +127,26 @@ Für jede `input.mp4` Datei im `input/` Ordner werden folgende WebM-Dateien im `
 
 ## Qualitätseinstellungen
 
-- **CRF 32**: Für Original, 1400px und 1000px Versionen
-- **CRF 33**: Für 500px Version (etwas höhere Kompression)
-- **VP9-Codec**: Für optimale Kompression
-- **Opus-Audio**: Für beste Audioqualität bei geringer Dateigröße
+### Adaptive CRF-Werte (automatisch angepasst)
+- **Original**: CRF 30 (wird automatisch erhöht falls WebM > MP4)
+- **1400px**: CRF 32 (wird automatisch erhöht falls WebM > MP4)
+- **1000px**: CRF 33 (wird automatisch erhöht falls WebM > MP4)
+- **500px**: CRF 35 (wird automatisch erhöht falls WebM > MP4)
+
+### Technische Optimierungen
+- **VP9-Codec** mit modernsten Einstellungen:
+  - `threads 8`: Bessere Multi-Core-Performance
+  - `speed 2`: Optimal für Qualität/Geschwindigkeit-Balance
+  - `tile-columns 1`: Ideal für Hochformat-Videos
+  - `row-mt 1`: Verbessertes Multi-Threading
+- **Opus-Audio** mit 128kbps für beste Audioqualität
+
+### Intelligente Dateigröße-Kontrolle
+Das Skript garantiert, dass WebM-Dateien kleiner als das Original MP4 sind:
+1. Erste Kodierung mit Standard-CRF
+2. Automatische CRF-Erhöhung um +3 wenn WebM > MP4 
+3. Wiederholung bis WebM ≤ MP4 oder max. CRF 50 erreicht
+4. Überspringt Konvertierung falls nicht effizienter als MP4
 
 ## Quadratische Version Details
 
@@ -136,8 +158,10 @@ Die quadratische 500px-Version verwendet intelligentes Zuschneiden:
 ## Hinweise
 
 - Die Konvertierung kann je nach Dateigröße und Systemleistung einige Zeit dauern
-- WebM-Dateien sind in der Regel deutlich kleiner als MP4-Dateien
+- WebM-Dateien sind **garantiert** kleiner oder gleich dem Original MP4
 - Das Seitenverhältnis wird automatisch beibehalten
+- Upscaling wird intelligent vermieden (z.B. keine 1400px Version für 800px breite Videos)
+- Das Skript zeigt detaillierte Informationen über Dateigröße und verwendete CRF-Werte
 
 ## Nutzung im HTML (Beispiel)
 
