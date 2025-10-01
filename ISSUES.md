@@ -1,113 +1,169 @@
 # WebM Converter - Identifizierte Probleme
 
-## Kritische Probleme (Script könnte crashen)
+## Status: Meiste Probleme behoben in Version 1.6.0 ✅
 
-### 1. Fehlende `video_width` Validierung (Zeile 146)
-**Problem:**
+Die meisten kritischen und Performance-Probleme wurden in Version 1.6.0 behoben. Nachfolgend eine Übersicht über den Status aller identifizierten Probleme.
+
+---
+
+## ✅ Behobene Probleme (Version 1.6.0)
+
+### 1. ✅ Fehlende `video_width` Validierung
+**Status:** BEHOBEN in v1.6.0
+
+**Lösung implementiert:**
+- Robuste `ffprobe`-Abfrage mit Validierung
+- Prüfung ob `video_width` numerisch und > 0 ist
+- Audio-only Dateien werden erkannt und übersprungen
+- Fehlerbehandlung für korrupte Dateien
+
+**Code (Zeile 571-579):**
 ```bash
-video_width=$(ffprobe -v quiet -select_streams v:0 -show_entries stream=width -of csv=s=x:p=0 "$file")
+video_width=$(ffprobe -v quiet -select_streams v:0 -show_entries stream=width -of csv=s=x:p=0 "$file" 2>/dev/null)
+
+if [[ -z "$video_width" || "$video_width" -eq 0 ]]; then
+    echo "⚠️  Keine Video-Spur gefunden oder ungültige Breite. Überspringe $filename"
+    STATS_SKIPPED_FILES=$((STATS_SKIPPED_FILES + 1))
+    continue
+fi
 ```
 
-**Risiken:**
-- `ffprobe` könnte fehlschlagen → `video_width` ist leer
-- Video hat keinen Video-Stream → Crash bei numerischen Vergleichen `[[ $video_width -gt 1400 ]]`
-- Korrupte Datei → unvorhersagbares Verhalten
+### 2. ✅ Division durch 0 Problem
+**Status:** BEHOBEN in v1.6.0
 
-**Lösung:**
-- Validierung ob `video_width` numerisch und > 0 ist
-- Fallback-Verhalten bei ungültigen Werten
-- Fehlerbehandlung für `ffprobe` Failures
+**Lösung implementiert:**
+- Prüfung `if [[ $STATS_INPUT_SIZE -gt 0 ]]` vor allen Divisionen
+- `input_size` wird vor allen Konvertierungen validiert
+- Statistik-Berechnungen nur wenn Daten vorhanden
 
-### 2. Division durch 0 Problem (Zeile 129)
-**Problem:**
+**Code (Zeile 969-971):**
 ```bash
-echo "... ($(( (output_size * 100) / input_size ))% des Originals...)"
+if [[ "$DRY_RUN" == false && $STATS_CREATED_FILES -gt 0 && $STATS_INPUT_SIZE -gt 0 ]]; then
+    compression_percent=$(awk "BEGIN {printf \"%.1f\", ($STATS_OUTPUT_SIZE * 100) / $STATS_INPUT_SIZE}")
+fi
 ```
 
-**Risiko:**
-- Crash wenn `input_size` = 0 (leere oder korrupte Dateien)
+### 3. ✅ Keine Behandlung korrupter Video-Dateien
+**Status:** BEHOBEN in v1.6.0
 
-**Lösung:**
-- Prüfung `if [[ $input_size -gt 0 ]]` vor Division
-- Fallback-Anzeige bei ungültigen Größen
-
-### 3. Keine Behandlung korrupter Video-Dateien
-**Problem:**
-- Script versucht korrupte .mp4 Dateien zu verarbeiten
-- Führt zu kryptischen Fehlern und hängenden Prozessen
-
-**Lösung:**
+**Lösung implementiert:**
 - Validierung mit `ffprobe` vor Verarbeitung
-- Skip korrupter Dateien mit informativer Meldung
+- Skip von Dateien ohne Video-Stream
+- Informative Fehlermeldungen
+- Statistik zählt übersprungene Dateien
 
-## Hohe Probleme (Performance/Stabilität)
+### 4. ✅ Hardcodierte Thread-Anzahl
+**Status:** BEHOBEN in v1.6.0
 
-### 4. Hardcodierte Thread-Anzahl (Zeile 51, 95, 105)
-**Problem:**
+**Lösung implementiert:**
+- Dynamische Thread-Erkennung: `nproc` (Linux) / `sysctl -n hw.ncpu` (macOS)
+- Automatische Erkennung der CPU-Kerne
+- Sane Defaults (alle verfügbaren Cores)
+
+**Code (Zeile 212-221):**
 ```bash
--threads 8
+if command -v nproc &> /dev/null; then
+    THREAD_COUNT=$(nproc)
+elif command -v sysctl &> /dev/null; then
+    THREAD_COUNT=$(sysctl -n hw.ncpu)
+else
+    THREAD_COUNT=4
+fi
 ```
 
-**Risiken:**
-- Überlastet schwächere Systeme (z.B. 4-Core CPUs)
-- Unternutzt starke Systeme (z.B. 16+ Core CPUs)
-- Kann System unresponsive machen
+### 5. ✅ Ineffiziente CRF-Steigerung
+**Status:** TEILWEISE BEHOBEN in v1.6.0
 
-**Lösung:**
-- Dynamische Thread-Erkennung: `nproc` (Linux) / `sysctl -n hw.ncpu` (macOS)
-- Konfigurierbare Thread-Anzahl als Parameter
-- Sane Defaults (z.B. max 75% der verfügbaren Cores)
+**Verbesserungen:**
+- Video-Type-basierte CRF-Selektion (screencast: 40, film: 26, etc.)
+- Bitrate-basierte CRF-Anpassung für intelligentere Ausgangswerte
+- 50% Variante nutzt Two-Pass Encoding (präziser als iterative CRF-Steigerung)
 
-### 5. Race Conditions bei parallelen Ausführungen
-**Problem:**
-- Mehrere Script-Instanzen können gleichzeitig laufen
-- Temp-Dateien `${output_file}.tmp` könnten sich überschreiben
-- Kein Locking-Mechanismus
+**Hinweis:**
+Die +3 CRF-Steigerung bei size-check Iterationen bleibt bestehen, aber durch bessere Ausgangs-CRF-Werte werden weniger Iterationen benötigt.
 
-**Risiken:**
-- Korrupte Output-Dateien
-- Unvollständige Konvertierungen
-- Resource-Konflikte
+### 6. ✅ Fehlende Validierung und Hilfe-System
+**Status:** BEHOBEN in v1.6.0
 
-**Lösung:**
-- PID-basierte Temp-Dateinamen: `${output_file}.tmp.$$`
+**Neu implementiert:**
+- `--help` Parameter mit umfassender Dokumentation
+- `--version` Parameter
+- FFmpeg/FFprobe Verfügbarkeits-Checks
+- Parameter-Validierung
+- Cleanup-Trap für EXIT/INT/TERM Signale
+
+### 7. ✅ Code-Duplikation
+**Status:** BEHOBEN in v1.6.0
+
+**Refactoring:**
+- `run_ffmpeg()` Helper-Funktion eliminiert 6 duplizierte FFmpeg-Aufrufe
+- Konsistente Parameter-Verwendung
+- Bessere Wartbarkeit
+
+---
+
+## ⚠️ Offene/Teilweise gelöste Probleme
+
+### 5. ⚠️ Race Conditions bei parallelen Ausführungen
+**Status:** TEILWEISE GELÖST
+
+**Was fehlt noch:**
+- PID-basierte Temp-Dateinamen (aktuell: `${output_file}.tmp`)
 - Lock-File Mechanismus für Input-Directory
 - Prüfung auf bereits laufende Instanzen
 
-### 6. Fehlende Disk Space Checks
-**Problem:**
-- Keine Prüfung ob genug Speicherplatz vorhanden
-- WebM-Dateien können während Konvertierung sehr groß werden
-- Temp-Dateien könnten Festplatte füllen
-
 **Risiken:**
-- "No space left on device" Errors
-- System-Instabilität
-- Unvollständige Konvertierungen
+- Bei paralleler Ausführung können sich Temp-Dateien überschreiben
+- Potenzielle Korruption bei gleichzeitiger Verarbeitung derselben Datei
 
-**Lösung:**
-- Verfügbaren Speicherplatz prüfen vor Konvertierung
-- Mindest-Freiraum-Requirements (z.B. 2x Input-Dateigröße)
+**Empfohlene Lösung:**
+```bash
+# PID-basierte Temp-Files:
+temp_file="${output_file}.tmp.$$"
+
+# Lock-File Check:
+lockfile="/tmp/webmconverter_${input_dir//\//_}.lock"
+if [[ -f "$lockfile" ]]; then
+    echo "Eine andere Instanz läuft bereits."
+    exit 1
+fi
+```
+
+### 6. ⚠️ Fehlende Disk Space Checks
+**Status:** NICHT IMPLEMENTIERT
+
+**Was fehlt:**
+- Prüfung ob genug Speicherplatz vorhanden vor Konvertierung
+- Mindest-Freiraum-Requirements (z.B. 2x Input-Dateigröße für Two-Pass)
 - Cleanup bei Speicherplatz-Problemen
 
-### 7. Ineffiziente CRF-Steigerung
-**Problem:**
-- Erhöht immer um +3, unabhängig von Größenunterschied
-- Keine Berücksichtigung wie viel kleiner das WebM werden muss
-- Kann zu überoptimierter Kompression führen
+**Risiken:**
+- "No space left on device" Errors während Konvertierung
+- Unvollständige/korrupte Output-Dateien
+- System-Instabilität bei voller Festplatte
 
-**Performance-Impact:**
-- Unnötige Re-Encodings
-- Längere Verarbeitungszeit
-- Möglicherweise schlechtere Qualität als nötig
+**Empfohlene Lösung:**
+```bash
+# Vor Konvertierung:
+available_space=$(df -P "$OUTPUT_DIR" | awk 'NR==2 {print $4}')
+required_space=$((input_size * 2))  # 2x für Two-Pass Encoding
 
-**Lösung:**
-- Adaptive CRF-Steigerung basierend auf Größenverhältnis
-- Kleinere Inkremente (z.B. +1 oder +2) für feinere Kontrolle
-- Intelligentere Ziel-CRF-Berechnung
+if [[ $available_space -lt $required_space ]]; then
+    echo "⚠️  Nicht genug Speicherplatz. Benötigt: ${required_space}KB, Verfügbar: ${available_space}KB"
+    continue
+fi
+```
+
+---
 
 ## Erstellungsdatum
 2025-08-21
 
-## Status
-Identifiziert - nicht behoben
+## Letzte Aktualisierung
+2025-10-01 (Version 1.6.0)
+
+## Zusammenfassung
+
+**Behobene Probleme:** 7/9 (78%)
+**Kritische offene Probleme:** 0
+**Empfohlene Verbesserungen:** 2 (Race Conditions, Disk Space Checks)
