@@ -740,28 +740,31 @@ for file in "$INPUT_DIR"/*.mp4; do
     STATS_INPUT_SIZE=$((STATS_INPUT_SIZE + input_size))
     STATS_TOTAL_VIDEOS=$((STATS_TOTAL_VIDEOS + 1))
 
-    # Original mit optimalem CRF
-    if should_create_variant "original"; then
-        echo "  → Erstelle Original-Version..."
-        convert_with_size_check "$file" "$OUTPUT_DIR/${name}_original.webm" "" "$optimal_crf" "original" "$audio_bitrate"
-    fi
+    # Original und 50% Versionen nur erstellen wenn KEINE custom resolutions angegeben
+    if [[ -z "$CUSTOM_RESOLUTIONS" ]]; then
+        # Original mit optimalem CRF
+        if should_create_variant "original"; then
+            echo "  → Erstelle Original-Version..."
+            convert_with_size_check "$file" "$OUTPUT_DIR/${name}_original.webm" "" "$optimal_crf" "original" "$audio_bitrate"
+        fi
 
-    # Größe der Original-WebM ermitteln (nur wenn nicht dry-run)
-    original_webm_size=0
-    if [[ "$DRY_RUN" == false && -f "$OUTPUT_DIR/${name}_original.webm" ]]; then
-        original_webm_size=$(stat -f%z "$OUTPUT_DIR/${name}_original.webm" 2>/dev/null || stat -c%s "$OUTPUT_DIR/${name}_original.webm" 2>/dev/null)
-    fi
+        # Größe der Original-WebM ermitteln (nur wenn nicht dry-run)
+        original_webm_size=0
+        if [[ "$DRY_RUN" == false && -f "$OUTPUT_DIR/${name}_original.webm" ]]; then
+            original_webm_size=$(stat -f%z "$OUTPUT_DIR/${name}_original.webm" 2>/dev/null || stat -c%s "$OUTPUT_DIR/${name}_original.webm" 2>/dev/null)
+        fi
 
-    # 50%-Version nur erstellen wenn Original-WebM größer als 50% des MP4 ist
-    if should_create_variant "50percent"; then
-        target_50_percent=$(( input_size / 2 ))
-        if [[ "$DRY_RUN" == true ]] || [[ $original_webm_size -gt $target_50_percent ]] || [[ $original_webm_size -eq 0 ]]; then
-            echo "  → Erstelle 50%-Version (Originalauflösung)..."
-            convert_to_50_percent "$file" "$OUTPUT_DIR/${name}_50percent.webm" "" "$VIDEO_TYPE" "$audio_bitrate"
-        else
-            percent=$(( (original_webm_size * 100) / input_size ))
-            echo "  → Überspringe 50%-Version (Original-WebM ist bereits ${percent}% vom MP4)"
-            STATS_SKIPPED_FILES=$((STATS_SKIPPED_FILES + 1))
+        # 50%-Version nur erstellen wenn Original-WebM größer als 50% des MP4 ist
+        if should_create_variant "50percent"; then
+            target_50_percent=$(( input_size / 2 ))
+            if [[ "$DRY_RUN" == true ]] || [[ $original_webm_size -gt $target_50_percent ]] || [[ $original_webm_size -eq 0 ]]; then
+                echo "  → Erstelle 50%-Version (Originalauflösung)..."
+                convert_to_50_percent "$file" "$OUTPUT_DIR/${name}_50percent.webm" "" "$VIDEO_TYPE" "$audio_bitrate"
+            else
+                percent=$(( (original_webm_size * 100) / input_size ))
+                echo "  → Überspringe 50%-Version (Original-WebM ist bereits ${percent}% vom MP4)"
+                STATS_SKIPPED_FILES=$((STATS_SKIPPED_FILES + 1))
+            fi
         fi
     fi
 
