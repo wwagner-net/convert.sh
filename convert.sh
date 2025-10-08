@@ -833,8 +833,8 @@ for file in "$INPUT_DIR"/*.mp4; do
     if [[ "$CREATE_SQUARE" == true ]] || [[ -n "$VARIANTS" ]] && should_create_variant "square"; then
         square_size=500
         if [[ -n "$CUSTOM_RESOLUTIONS" ]] && [[ ${#resolutions_to_process[@]} -gt 0 ]]; then
-            # Kleinste custom Auflösung verwenden
-            square_size=${resolutions_to_process[-1]}
+            # Kleinste custom Auflösung verwenden (letztes Element)
+            square_size="${resolutions_to_process[${#resolutions_to_process[@]}-1]}"
         fi
 
         crf_square=$(( optimal_crf + 5 ))
