@@ -3,7 +3,7 @@
 # MP4 zu WebM Konverter
 #
 # Autor: Wolfgang Wagner, wwagner@wwagner.net
-# Version: 1.6.0
+# Version: 1.6.1
 #
 # Beschreibung: Konvertiert MP4-Videos aus dem input/ Ordner in verschiedene WebM-Formate
 # mit unterschiedlichen Auflösungen und Qualitätseinstellungen.
@@ -13,7 +13,7 @@
 # Hilfsfunktion für --help
 show_help() {
     cat << EOF
-MP4 zu WebM Konverter v1.6.0
+MP4 zu WebM Konverter v1.6.1
 Autor: Wolfgang Wagner <wwagner@wwagner.net>
 
 VERWENDUNG:

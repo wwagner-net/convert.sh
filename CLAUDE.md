@@ -10,7 +10,7 @@ This is a WebM Converter utility by Wolfgang Wagner - an intelligent Bash script
 
 **Single-script architecture**: The entire functionality is contained in `convert.sh` - a standalone Bash script that processes MP4 files from an input directory and outputs to a separate directory.
 
-**Core functionality (Version 1.6.0)**:
+**Core functionality (Version 1.6.1)**:
 - Reads all `.mp4` files from the `input/` directory
 - Outputs converted files to the `output/` directory
 - Automatically creates `input/` and `output/` directories if they don't exist
@@ -166,7 +166,11 @@ The `convert_to_50_percent()` function uses two-pass encoding:
 
 ## Version History
 
-- **Version 1.6.0** (Current):
+- **Version 1.6.1** (Current):
+  - Fixed array subscript error with `--variants square --resolutions "500"`
+  - `--resolutions` now suppresses original/50percent variants for cleaner workflow
+
+- **Version 1.6.0**:
   - Added `--help` and `--version` parameters
   - Added `--verbose` for debugging
   - Added `--resolutions` for custom resolutions

@@ -4,7 +4,7 @@ Ein intelligentes Bash-Skript zur automatischen Konvertierung von MP4-Videos in 
 
 ## Autor
 Wolfgang Wagner (wwagner@wwagner.net)
-Version: 1.6.0
+Version: 1.6.1
 
 ## Was ist WebM?
 
@@ -227,8 +227,8 @@ bash ./convert.sh --type action --variants "50percent"
 ### Parameter-Kombinationsregeln
 
 - **`--variants` + `--resolutions`**: Variants = TYPE-Filter (original/50percent/square), Resolutions = Custom-Größen
-- **Nur `--resolutions`**: Erstellt alle Custom-Resolutions (ersetzt Standard 1400/1000/500)
-- **Nur `--variants`**: Filtert Standard-Varianten
+- **Nur `--resolutions`**: Erstellt NUR Custom-Resolutions (keine original/50percent Varianten)
+- **Nur `--variants`**: Filtert Standard-Varianten (original/50percent/square/1400px/1000px/500px)
 - **`--square` ohne `--variants`**: Erstellt zusätzlich zur Standard-Ausgabe auch Square
 - **Ohne `--type`**: Interaktive Abfrage beim ersten Video
 
@@ -263,6 +263,8 @@ Für jede `input.mp4` Datei im `input/` Ordner werden folgende WebM-Dateien im `
 ### Mit Custom Resolutions (z.B. `--resolutions "1920,720"`):
 - `input_1920px.webm` - 1920px Breite
 - `input_720px.webm` - 720px Breite
+
+**Hinweis:** Bei Verwendung von `--resolutions` werden NUR die angegebenen Auflösungen erstellt (keine original/50percent Varianten). Um diese zusätzlich zu erhalten, nutze `--variants "original,50percent" --resolutions "1920,720"`.
 
 ### Statistik-Ausgabe am Ende
 ```
@@ -447,6 +449,10 @@ Die quadratische 500px-Version verwendet intelligentes Zuschneiden:
 ```
 
 ## Version History
+
+### Version 1.6.1 (2025-10-08)
+- 🐛 **Fix**: Array subscript error bei `--variants square --resolutions "500"`
+- 🔧 **Custom Resolutions Logik**: `--resolutions` unterdrückt original/50percent Varianten für intuitiveren Workflow
 
 ### Version 1.6.0 (2025-10-01)
 - ✨ **Video-Type-basierte CRF-Optimierung** (screencast, animation, nature, action, film)

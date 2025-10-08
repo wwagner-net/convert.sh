@@ -1,8 +1,8 @@
 # WebM Converter - Identifizierte Probleme
 
-## Status: Meiste Probleme behoben in Version 1.6.0 ✅
+## Status: Meiste Probleme behoben in Version 1.6.1 ✅
 
-Die meisten kritischen und Performance-Probleme wurden in Version 1.6.0 behoben. Nachfolgend eine Übersicht über den Status aller identifizierten Probleme.
+Die meisten kritischen und Performance-Probleme wurden in Version 1.6.0-1.6.1 behoben. Nachfolgend eine Übersicht über den Status aller identifizierten Probleme.
 
 ---
 
@@ -100,6 +100,42 @@ Die +3 CRF-Steigerung bei size-check Iterationen bleibt bestehen, aber durch bes
 - Konsistente Parameter-Verwendung
 - Bessere Wartbarkeit
 
+### 8. ✅ Array subscript error bei negative index
+**Status:** BEHOBEN in v1.6.1
+
+**Problem:**
+- `${resolutions_to_process[-1]}` (negative array index) verursachte "bad array subscript" Fehler
+- Trat auf bei `--variants "square" --resolutions "500"`
+
+**Lösung implementiert:**
+- Verwendung von `${resolutions_to_process[${#resolutions_to_process[@]}-1]}` für letzte Element-Zugriff
+- Kompatibel mit allen Bash-Versionen
+
+**Code (Zeile 837):**
+```bash
+square_size="${resolutions_to_process[${#resolutions_to_process[@]}-1]}"
+```
+
+### 9. ✅ Custom Resolutions Workflow-Problem
+**Status:** BEHOBEN in v1.6.1
+
+**Problem:**
+- Bei `--resolutions "400,768"` wurden trotzdem original/50percent Varianten erstellt
+- Benutzer wollte nur die angegebenen Auflösungen
+
+**Lösung implementiert:**
+- `--resolutions` unterdrückt jetzt automatisch original/50percent Varianten
+- Fokussiert auf nur die gewünschten Custom-Resolutions
+- Kombination mit `--variants "original"` möglich wenn trotzdem gewünscht
+
+**Code (Zeile 744):**
+```bash
+if [[ -z "$CUSTOM_RESOLUTIONS" ]]; then
+    # Original und 50% nur wenn KEINE custom resolutions
+    ...
+fi
+```
+
 ---
 
 ## ⚠️ Offene/Teilweise gelöste Probleme
@@ -160,10 +196,10 @@ fi
 2025-08-21
 
 ## Letzte Aktualisierung
-2025-10-01 (Version 1.6.0)
+2025-10-08 (Version 1.6.1)
 
 ## Zusammenfassung
 
-**Behobene Probleme:** 7/9 (78%)
+**Behobene Probleme:** 9/11 (82%)
 **Kritische offene Probleme:** 0
 **Empfohlene Verbesserungen:** 2 (Race Conditions, Disk Space Checks)
