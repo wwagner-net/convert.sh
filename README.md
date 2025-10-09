@@ -1,10 +1,10 @@
 # WebM Converter
 
-Ein intelligentes Bash-Skript zur automatischen Konvertierung von MP4-Videos in WebM-Format mit adaptiver Qualitätsoptimierung, verschiedenen Auflösungen und Video-Type-basierter Kompression.
+Ein intelligentes Bash-Skript zur automatischen Konvertierung von MP4/MOV-Videos in WebM-Format mit adaptiver Qualitätsoptimierung, verschiedenen Auflösungen und Video-Type-basierter Kompression.
 
 ## Autor
 Wolfgang Wagner (wwagner@wwagner.net)
-Version: 1.6.1
+Version: 1.6.2
 
 ## Was ist WebM?
 
@@ -33,7 +33,7 @@ WebM wird von nahezu allen modernen Browsern unterstützt mit einer Browser-Komp
 
 ## Beschreibung
 
-Das Skript konvertiert alle MP4-Dateien aus dem `input/` Ordner in WebM-Format mit intelligenter Größenoptimierung:
+Das Skript konvertiert alle MP4/MOV-Dateien aus dem `input/` Ordner in WebM-Format mit intelligenter Größenoptimierung:
 - **Original**: Behält die ursprüngliche Auflösung bei (mit adaptivem CRF)
 - **50% Variante**: Two-Pass Encoding für exakt 50% Dateigröße des Originals
 - **1400px**: Skaliert auf 1400px Breite (nur wenn Original > 1400px)
@@ -109,7 +109,7 @@ sudo apt install ffmpeg
 
 ## Verwendung
 
-1. Lege alle MP4-Dateien, die konvertiert werden sollen, in den `input/` Ordner
+1. Lege alle MP4/MOV-Dateien, die konvertiert werden sollen, in den `input/` Ordner
 2. Führe das Skript aus (die Ordner `input/` und `output/` werden automatisch erstellt)
 
 ### Grundlegende Verwendung
@@ -237,8 +237,9 @@ bash ./convert.sh --type action --variants "50percent"
 ```
 webmconverter/
 ├── convert.sh
-├── input/          # Hier MP4-Dateien ablegen
-│   └── video.mp4
+├── input/          # Hier MP4/MOV-Dateien ablegen
+│   ├── video.mp4
+│   └── video.mov
 └── output/         # Hier werden WebM-Dateien erstellt
     ├── video_original.webm
     ├── video_1400px.webm

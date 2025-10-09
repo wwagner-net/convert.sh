@@ -4,6 +4,17 @@ Alle wichtigen Änderungen an diesem Projekt werden in dieser Datei dokumentiert
 
 Das Format basiert auf [Keep a Changelog](https://keepachangelog.com/de/1.0.0/).
 
+## [1.6.2] - 2025-10-09
+
+### Added
+- Unterstützung für `.mov` Dateien zusätzlich zu `.mp4`
+- Robuste Dateierkennung für gemischte MP4/MOV-Ordner
+
+### Changed
+- Dateiprüfung zählt nun MP4 und MOV separat
+- Schleife verarbeitet beide Formate
+- Dokumentation aktualisiert (README, CLAUDE.md)
+
 ## [1.6.1] - 2025-10-08
 
 ### Fixed

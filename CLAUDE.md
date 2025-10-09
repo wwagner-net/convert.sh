@@ -4,24 +4,24 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a WebM Converter utility by Wolfgang Wagner - an intelligent Bash script that converts MP4 videos to WebM format with automatic size optimization. The project focuses on creating optimized WebM videos that are guaranteed to be smaller than the original MP4, with intelligent video-type-based encoding and flexible resolution handling.
+This is a WebM Converter utility by Wolfgang Wagner - an intelligent Bash script that converts MP4/MOV videos to WebM format with automatic size optimization. The project focuses on creating optimized WebM videos that are guaranteed to be smaller than the original MP4/MOV, with intelligent video-type-based encoding and flexible resolution handling.
 
 ## Architecture
 
-**Single-script architecture**: The entire functionality is contained in `convert.sh` - a standalone Bash script that processes MP4 files from an input directory and outputs to a separate directory.
+**Single-script architecture**: The entire functionality is contained in `convert.sh` - a standalone Bash script that processes MP4/MOV files from an input directory and outputs to a separate directory.
 
-**Core functionality (Version 1.6.1)**:
-- Reads all `.mp4` files from the `input/` directory
+**Core functionality (Version 1.6.2)**:
+- Reads all `.mp4` and `.mov` files from the `input/` directory
 - Outputs converted files to the `output/` directory
 - Automatically creates `input/` and `output/` directories if they don't exist
 - **Intelligent resolution handling**: Only creates versions smaller than original (prevents upscaling)
-- **Automatic file size control**: Guarantees WebM files ≤ MP4 size through adaptive CRF adjustment
+- **Automatic file size control**: Guarantees WebM files ≤ MP4/MOV size through adaptive CRF adjustment
 - **Video-type optimization**: CRF and audio bitrate based on content type (screencast, animation, nature, action, film)
 - **Flexible resolutions**: Custom resolutions via `--resolutions` or standard (1400px, 1000px, 500px)
 - **50% target size variant**: Two-pass encoding for precise 50% file size reduction
 - **Optional square variant**: Dynamic size based on smallest resolution
 - Uses optimized VP9 video codec and Opus audio codec
-- **Adaptive CRF values**: Automatically increased until WebM < MP4 or max CRF 50 reached
+- **Adaptive CRF values**: Automatically increased until WebM < MP4/MOV or max CRF 50 reached
 - **Dynamic thread count**: Automatically detects CPU cores
 - **Robust error handling**: Audio-only detection, bitrate fallbacks, cleanup on exit
 
@@ -61,10 +61,10 @@ bash ./convert.sh --help
 ```
 webmconverter/
 ├── convert.sh          # Main conversion script
-├── README.md          # Comprehensive German documentation  
+├── README.md          # Comprehensive German documentation
 ├── CLAUDE.md          # This file
 ├── .gitignore         # Excludes video files and IDE files
-├── input/             # Directory for source MP4 files
+├── input/             # Directory for source MP4/MOV files
 └── output/            # Directory for converted WebM files
 ```
 
@@ -93,10 +93,10 @@ None - script runs interactively if no parameters provided
 
 ## Directory Structure & Output
 
-**Input**: Place MP4 files in `input/` directory
+**Input**: Place MP4/MOV files in `input/` directory
 **Output**: WebM files are created in `output/` directory
 
-For input file `input/example.mp4`, the script generates in `output/` (depending on parameters):
+For input file `input/example.mp4` or `input/example.mov`, the script generates in `output/` (depending on parameters):
 - `example_original.webm` - Original resolution
 - `example_50percent.webm` - 50% file size (two-pass)
 - `example_1400px.webm` - 1400px width (or custom)
@@ -140,10 +140,10 @@ Scaled versions get higher CRF:
 ### Intelligent Size Control
 The `convert_with_size_check()` function implements iterative optimization:
 1. Initial encoding with optimized CRF value
-2. File size comparison with original MP4
-3. Automatic CRF increment (+3) if WebM larger than MP4
-4. Repeat until WebM ≤ MP4 or maximum CRF 50 reached
-5. Skip conversion if WebM cannot be made smaller than MP4
+2. File size comparison with original MP4/MOV
+3. Automatic CRF increment (+3) if WebM larger than MP4/MOV
+4. Repeat until WebM ≤ MP4/MOV or maximum CRF 50 reached
+5. Skip conversion if WebM cannot be made smaller than MP4/MOV
 
 ### 50% Variant (Two-Pass)
 The `convert_to_50_percent()` function uses two-pass encoding:
@@ -156,7 +156,7 @@ The `convert_to_50_percent()` function uses two-pass encoding:
 
 - No package.json or build system - pure Bash script
 - No tests - functional script for direct execution
-- Git ignores all video files (*.mp4, *.webm) to keep repository clean
+- Git ignores all video files (*.mp4, *.mov, *.webm) to keep repository clean
 - Script validates FFmpeg/FFprobe installation
 - Script validates all input parameters
 - Audio-only files are detected and skipped
@@ -166,7 +166,12 @@ The `convert_to_50_percent()` function uses two-pass encoding:
 
 ## Version History
 
-- **Version 1.6.1** (Current):
+- **Version 1.6.2** (Current):
+  - Added support for `.mov` files in addition to `.mp4`
+  - Updated file detection to handle both formats
+  - Improved error handling for mixed format directories
+
+- **Version 1.6.1**:
   - Fixed array subscript error with `--variants square --resolutions "500"`
   - `--resolutions` now suppresses original/50percent variants for cleaner workflow
 
@@ -204,3 +209,5 @@ The `convert_to_50_percent()` function uses two-pass encoding:
 
 - **Version 1.0.0**:
   - Initial release with basic MP4 to WebM conversion
+
+      IMPORTANT: this context may or may not be relevant to your tasks. You should not respond to this context unless it is highly relevant to your task.
