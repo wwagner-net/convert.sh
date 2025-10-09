@@ -1,11 +1,11 @@
 #!/bin/bash
 #
-# MP4 zu WebM Konverter
+# MP4/MOV zu WebM Konverter
 #
 # Autor: Wolfgang Wagner, wwagner@wwagner.net
-# Version: 1.6.1
+# Version: 1.6.2
 #
-# Beschreibung: Konvertiert MP4-Videos aus dem input/ Ordner in verschiedene WebM-Formate
+# Beschreibung: Konvertiert MP4/MOV-Videos aus dem input/ Ordner in verschiedene WebM-Formate
 # mit unterschiedlichen Auflösungen und Qualitätseinstellungen.
 # Konvertierte Videos werden im output/ Ordner gespeichert.
 #
@@ -13,14 +13,14 @@
 # Hilfsfunktion für --help
 show_help() {
     cat << EOF
-MP4 zu WebM Konverter v1.6.1
+MP4/MOV zu WebM Konverter v1.6.2
 Autor: Wolfgang Wagner <wwagner@wwagner.net>
 
 VERWENDUNG:
     $0 [OPTIONEN]
 
 BESCHREIBUNG:
-    Konvertiert MP4-Videos aus dem input/ Ordner in WebM-Format mit
+    Konvertiert MP4/MOV-Videos aus dem input/ Ordner in WebM-Format mit
     intelligenter CRF-Optimierung, verschiedenen Auflösungen und
     garantierter Größenreduktion.
 
@@ -107,7 +107,7 @@ EOF
 }
 
 show_version() {
-    echo "MP4 zu WebM Konverter v1.6.0"
+    echo "MP4/MOV zu WebM Konverter v1.6.2"
     exit 0
 }
 
@@ -350,9 +350,13 @@ case $VIDEO_TYPE in
 esac
 echo ""
 
-# Prüfen ob MP4-Dateien im input-Ordner vorhanden sind
-if ! ls "$INPUT_DIR"/*.mp4 1> /dev/null 2>&1; then
-    echo "Keine MP4-Dateien im $INPUT_DIR Ordner gefunden!"
+# Prüfen ob MP4/MOV-Dateien im input-Ordner vorhanden sind
+mp4_count=$(ls "$INPUT_DIR"/*.mp4 2>/dev/null | wc -l | xargs)
+mov_count=$(ls "$INPUT_DIR"/*.mov 2>/dev/null | wc -l | xargs)
+total_count=$((mp4_count + mov_count))
+
+if [[ $total_count -eq 0 ]]; then
+    echo "Keine MP4/MOV-Dateien im $INPUT_DIR Ordner gefunden!"
     exit 1
 fi
 
@@ -597,10 +601,12 @@ convert_to_50_percent() {
 }
 
 # Video-Anzahl ermitteln für Progress-Anzeige
-total_videos=$(ls "$INPUT_DIR"/*.mp4 2>/dev/null | wc -l | xargs)
+total_videos=$( (ls "$INPUT_DIR"/*.mp4 2>/dev/null; ls "$INPUT_DIR"/*.mov 2>/dev/null) | wc -l | xargs)
 current_video=0
 
-for file in "$INPUT_DIR"/*.mp4; do
+for file in "$INPUT_DIR"/*.mp4 "$INPUT_DIR"/*.mov; do
+    # Überspringe nicht existierende Dateien (falls nur eines der Formate vorhanden)
+    [[ ! -f "$file" ]] && continue
     # Dateiname ohne Pfad und Erweiterung extrahieren
     basename_file=$(basename "$file")
     name="${basename_file%.*}"
