@@ -6,6 +6,32 @@ Ein intelligentes Bash-Skript zur automatischen Konvertierung von MP4/MOV-Videos
 Wolfgang Wagner (wwagner@wwagner.net)
 Version: 1.6.2
 
+---
+
+## 📑 Inhaltsverzeichnis
+
+### Schnellstart
+- [📥 Installation](#-installation)
+- [🚀 Quick Start für Mac](#-quick-start-für-mac)
+- [🎬 Erster Testlauf](#-erster-testlauf)
+- [💻 Quick Start für Windows & Linux](#-quick-start-für-windows--linux)
+
+### Nutzung
+- [Grundlegende Verwendung](#grundlegende-verwendung)
+- [Häufige Anwendungsfälle](#häufige-anwendungsfälle)
+- [Alle Parameter im Überblick](#parameter)
+
+### Hilfe & Referenz
+- [🔧 Troubleshooting für Mac](#-troubleshooting-für-mac)
+- [HTML-Beispiele](#nutzung-im-html-beispiel)
+- [Update-Anleitung](#-update-anleitung)
+
+### Hintergrund
+- [Was ist WebM?](#was-ist-webm)
+- [Technische Details](#technische-details) (Fortgeschritten)
+
+---
+
 ## Was ist WebM?
 
 WebM ist ein offenes, lizenzfreies Videoformat, das von Google entwickelt wurde und speziell für das Web optimiert ist. Es basiert auf dem VP8/VP9-Videocodec und dem Opus-Audiocodec, was zu einer ausgezeichneten Komprimierung bei hoher Qualität führt.
@@ -147,6 +173,15 @@ brew install ffmpeg
 ```
 *(Homebrew ist ein sicherer Paket-Manager für Mac, empfohlen von Apple-Entwicklern)*
 
+**⚠️ WICHTIG**: Nach der Homebrew-Installation erscheint möglicherweise:
+```
+==> Next steps:
+- Run these two commands in your terminal to add Homebrew to your PATH:
+  echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
+  eval "$(/opt/homebrew/bin/brew shellenv)"
+```
+**Kopiere und führe diese beiden Befehle aus**, sonst funktioniert `brew` nicht!
+
 Danach nochmal `brew install ffmpeg` ausführen.
 
 ### Schritt 3: Zum Script-Ordner navigieren
@@ -169,6 +204,228 @@ bash convert.sh
 3. Fertige WebM-Dateien finden Sie im `output/` Ordner
 
 **Das war's!** Die konvertierten Videos sind nun bereit für Ihre Website.
+
+---
+
+## 🎬 Erster Testlauf
+
+### Was passiert beim ersten Ausführen?
+
+Wenn Sie `bash convert.sh` zum ersten Mal ausführen:
+
+1. **Ordner werden erstellt** (falls nicht vorhanden):
+   ```
+   ✓ Erstelle input/-Ordner
+   ✓ Erstelle output/-Ordner
+   ```
+
+2. **Video-Typ Abfrage** (wenn kein `--type` angegeben):
+   ```
+   Welcher Video-Typ? (screencast/animation/nature/action/film)
+   Ihre Eingabe: film
+   ```
+   **Hilfe zur Auswahl**:
+   - `screencast`: Bildschirmaufnahmen, Präsentationen, Tutorials
+   - `animation`: Motion Graphics, animierte Videos, 2D/3D-Animationen
+   - `nature`: Naturfilme, Interviews, Dokumentationen
+   - `action`: Action-Szenen, Sport, schnelle Schnitte
+   - `film`: Spielfilme, cinematische Videos, höchste Qualität
+
+3. **Konvertierung läuft**:
+   ```
+   Verarbeite: mein-video.mp4
+   ├─ Video-Breite: 1920px
+   ├─ Bitrate: 8.5 Mbps
+   ├─ CRF: 30 (optimiert für film)
+   │
+   ├─ Erstelle: mein-video_original.webm
+   │  ├─ Encoding... ████████████████████ 100%
+   │  └─ ✓ 125.3 MB → 89.7 MB (71.5%)
+   │
+   ├─ Erstelle: mein-video_50percent.webm (Two-Pass)
+   │  ├─ Pass 1... ████████████████████ 100%
+   │  ├─ Pass 2... ████████████████████ 100%
+   │  └─ ✓ 125.3 MB → 62.6 MB (50.0%)
+   │
+   ├─ Erstelle: mein-video_1400px.webm
+   │  └─ ✓ 54.2 MB
+   │
+   └─ ✓ Fertig!
+   ```
+
+4. **Abschluss-Statistik**:
+   ```
+   ═══════════════════════════════════════
+   📊 Konvertierungs-Statistik
+   ═══════════════════════════════════════
+   Videos verarbeitet: 1
+   Dateien erstellt: 3
+   Übersprungen: 0
+   ───────────────────────────────────────
+   Input-Größe: 125.3 MB
+   Output-Größe: 206.5 MB (alle Varianten zusammen)
+   Durchschnittliche Kompression: 68.2%
+   Platzeinsparung: 39.1 MB (pro Variante)
+   ═══════════════════════════════════════
+   ```
+
+### Wie prüfe ich das Ergebnis?
+
+**Im Finder**:
+```bash
+open output/
+```
+Öffnet den output-Ordner → Sie sehen alle erstellten WebM-Dateien
+
+**Dateien vergleichen**:
+- Original: `input/mein-video.mp4` (z.B. 125 MB)
+- WebM Original: `output/mein-video_original.webm` (z.B. 89 MB = 71% Größe)
+- WebM 50%: `output/mein-video_50percent.webm` (z.B. 62 MB = 50% Größe)
+
+**Qualität prüfen**:
+- Doppelklick auf `.webm`-Datei → Öffnet in QuickTime/VLC
+- Vergleiche Qualität mit Original MP4
+- Bei guter Einstellung: Kaum sichtbarer Unterschied!
+
+### Was ist eine "gute" Kompression?
+
+| Kompressionsrate | Bewertung | Typisch für |
+|-----------------|-----------|-------------|
+| 60-75% | ⭐⭐⭐ Ausgezeichnet | Screencast, Animation |
+| 75-85% | ⭐⭐ Gut | Film, Action |
+| 85-95% | ⭐ Akzeptabel | Bereits komprimierte MP4s |
+| > 95% | ⚠️ Wenig Ersparnis | Schon sehr optimierte Videos |
+
+**Faustregel**: Wenn die WebM-Datei kleiner als das Original ist und die Qualität gut aussieht, war es erfolgreich!
+
+### Häufige Fragen beim ersten Mal
+
+**Q: Warum gibt es keine 1400px-Version?**
+→ Ihr Video ist schmaler als 1400px. Das Script vermeidet Upscaling.
+
+**Q: Was bedeutet "Two-Pass Encoding"?**
+→ FFmpeg analysiert das Video zweimal für optimale Qualität bei exakt 50% Größe. Dauert länger, ist aber präziser.
+
+**Q: Kann ich das abbrechen?**
+→ Ja, mit `Ctrl+C`. Temporäre Dateien werden automatisch aufgeräumt.
+
+**Q: Wo finde ich die Original-Dateien?**
+→ Noch im `input/`-Ordner. Das Script löscht nie Ihre Originale!
+
+---
+
+## 💻 Quick Start für Windows & Linux
+
+### Windows (mit WSL - Windows Subsystem for Linux)
+
+**Voraussetzung**: WSL2 muss installiert sein. Falls nicht:
+
+1. **WSL installieren**:
+   - Öffne PowerShell als Administrator (Rechtsklick → "Als Administrator ausführen")
+   - Führe aus:
+     ```powershell
+     wsl --install
+     ```
+   - Computer neu starten
+
+2. **Ubuntu Terminal öffnen**:
+   - Windows-Suche → "Ubuntu" oder "WSL"
+   - Terminal öffnet sich
+
+3. **FFmpeg installieren**:
+   ```bash
+   sudo apt update
+   sudo apt install ffmpeg
+   ```
+   → Gibt Passwort ein wenn gefragt
+
+4. **Script installieren**:
+
+   **Option A - Git Clone**:
+   ```bash
+   mkdir -p ~/scripts
+   cd ~/scripts
+   git clone https://github.com/wwagner-net/convert.sh.git
+   cd convert.sh
+   ```
+
+   **Option B - ZIP Download**:
+   - Download: https://github.com/wwagner-net/convert.sh
+   - Entpacke im Windows-Explorer
+   - Im WSL-Terminal:
+     ```bash
+     cd /mnt/c/Users/IhrBenutzername/Downloads/convert.sh-main
+     ```
+
+5. **Videos konvertieren**:
+   ```bash
+   # Videos in input/ ablegen (z.B. über Windows-Explorer)
+   bash convert.sh
+   ```
+
+**Tipp**: Windows-Laufwerk C: ist unter `/mnt/c/` erreichbar in WSL.
+
+---
+
+### Linux (Ubuntu/Debian)
+
+1. **Terminal öffnen**:
+   - Tastenkombination: `Ctrl + Alt + T`
+
+2. **FFmpeg installieren**:
+   ```bash
+   sudo apt update
+   sudo apt install ffmpeg git
+   ```
+
+3. **Script installieren**:
+   ```bash
+   # Erstelle scripts-Ordner
+   mkdir -p ~/scripts
+   cd ~/scripts
+
+   # Clone Repository
+   git clone https://github.com/wwagner-net/convert.sh.git
+   cd convert.sh
+   ```
+
+4. **Videos konvertieren**:
+   ```bash
+   # Videos in input/ ablegen
+   # Über Dateimanager oder mit:
+   cp /pfad/zum/video.mp4 input/
+
+   # Konvertierung starten
+   bash convert.sh
+   ```
+
+5. **Output anzeigen**:
+   ```bash
+   # Öffne output-Ordner im Dateimanager
+   xdg-open output/
+   ```
+
+---
+
+### Linux (Fedora/RHEL/CentOS)
+
+**FFmpeg installieren**:
+```bash
+sudo dnf install ffmpeg git
+```
+
+Danach wie Ubuntu/Debian (Schritte 3-5).
+
+---
+
+### Linux (Arch/Manjaro)
+
+**FFmpeg installieren**:
+```bash
+sudo pacman -S ffmpeg git
+```
+
+Danach wie Ubuntu/Debian (Schritte 3-5).
 
 ---
 
@@ -250,103 +507,119 @@ sudo apt install ffmpeg
 
 ## Verwendung
 
-1. Lege alle MP4/MOV-Dateien, die konvertiert werden sollen, in den `input/` Ordner
-2. Führe das Skript aus (die Ordner `input/` und `output/` werden automatisch erstellt)
-
 ### Grundlegende Verwendung
 
-**Standard-Modus** (alle Standard-Varianten):
+Die einfachste Nutzung in 3 Schritten:
+
+1. **Videos ablegen**: Kopiere MP4/MOV-Dateien in den `input/` Ordner
+2. **Script starten**:
+   ```bash
+   bash convert.sh
+   ```
+3. **Fertig**: WebM-Dateien findest du im `output/` Ordner
+
+**Standard-Modus** (erstellt alle Varianten):
 ```bash
-bash ./convert.sh
+bash convert.sh
+```
+→ Erstellt: original, 50%, 1400px, 1000px, 500px (abhängig von Video-Größe)
+
+**Mit Video-Type** (bessere Kompression):
+```bash
+bash convert.sh --type film         # Höchste Qualität
+bash convert.sh --type screencast   # Beste Kompression
 ```
 
-**Mit Video-Type Angabe** (optimierte Kompression):
+**Mit Square-Version** (für Social Media):
 ```bash
-bash ./convert.sh --type film
-bash ./convert.sh --type screencast
-bash ./convert.sh --type animation
+bash convert.sh --square
+```
+→ Erstellt zusätzlich 500x500px quadratische Version
+
+---
+
+### Häufige Anwendungsfälle
+
+Diese Beispiele decken 90% aller Nutzungsszenarien ab:
+
+#### 🎥 Website-Video (alle Größen)
+```bash
+bash convert.sh --type film
+```
+→ Erstellt responsive Versionen für Desktop, Tablet, Mobile
+
+#### 📺 Tutorial / Screencast
+```bash
+bash convert.sh --type screencast --resolutions "1920,1280"
+```
+→ Optimiert für Bildschirmaufnahmen, nur 1080p + 720p
+
+#### 📱 Social Media (Instagram, TikTok)
+```bash
+bash convert.sh --type nature --variants "square"
+```
+→ Nur 500x500px quadratisches Video
+
+#### 💾 Maximale Dateigröße-Reduktion
+```bash
+bash convert.sh --type action --variants "50percent"
+```
+→ Garantiert 50% Größe bei guter Qualität
+
+#### 🎬 Cinematisches Video (höchste Qualität)
+```bash
+bash convert.sh --type film --variants "original,50percent"
+```
+→ Nur Original-Auflösung + 50%-Variante
+
+#### ⚡ Schnelle Konvertierung (große Dateien)
+```bash
+bash convert.sh --type film --speed 4
+```
+→ Schnelleres Encoding, etwas größere Dateien
+
+#### 🎨 Eigene Auflösungen
+```bash
+bash convert.sh --resolutions "1920,1080,720" --type film
+```
+→ Full HD, HD, HD-Ready Versionen
+
+---
+
+### Erweiterte Parameter
+
+Für fortgeschrittene Nutzer und spezielle Anforderungen:
+
+**Nur bestimmte Varianten**:
+```bash
+bash convert.sh --variants "original,50percent"  # Nur diese beiden
+bash convert.sh --variants "square"              # Nur quadratisch
 ```
 
-**Mit quadratischer 500px-Version**:
+**Custom Resolutions kombinieren**:
 ```bash
-bash ./convert.sh --square
+bash convert.sh --resolutions "1920,720" --variants "original,50percent"
 ```
 
-**Interaktive Type-Auswahl** (Script fragt nach Video-Typ):
+**Encoding-Speed anpassen** (0-5):
 ```bash
-bash ./convert.sh
-# → Interaktive Abfrage: "Welcher Video-Typ?"
+bash convert.sh --speed 0  # Langsam, beste Kompression
+bash convert.sh --speed 4  # Schnell, größere Dateien
 ```
 
-### Erweiterte Verwendung
-
-**Nur bestimmte Varianten erstellen**:
+**Test ohne Konvertierung**:
 ```bash
-# Nur Original + 50% Variante
-bash ./convert.sh --variants "original,50percent"
-
-# Nur Square-Variante
-bash ./convert.sh --variants "square"
-
-# Nur 50% Variante
-bash ./convert.sh --variants "50percent"
+bash convert.sh --dry-run  # Zeigt nur was passieren würde
 ```
 
-**Custom Resolutions**:
+**Debug-Modus**:
 ```bash
-# Statt 1400/1000/500px → Custom Resolutions
-bash ./convert.sh --resolutions "1920,1280,720"
-
-# Kombinierbar mit Varianten (Type-Filter)
-bash ./convert.sh --resolutions "1920,720" --variants "original,50percent"
-```
-
-**Encoding-Speed anpassen**:
-```bash
-# Schneller (schlechtere Kompression)
-bash ./convert.sh --speed 4
-
-# Langsamer (bessere Kompression)
-bash ./convert.sh --speed 0
-```
-
-**Dry-Run (Simulation)**:
-```bash
-# Zeigt was gemacht würde, ohne zu konvertieren
-bash ./convert.sh --dry-run
-```
-
-**Verbose Mode**:
-```bash
-# Zeigt detaillierte FFmpeg-Ausgabe
-bash ./convert.sh --verbose
+bash convert.sh --verbose  # Zeigt FFmpeg-Details
 ```
 
 **Hilfe anzeigen**:
 ```bash
-bash ./convert.sh --help
-```
-
-### Beispiele aus der Praxis
-
-**Screencast für Tutorial-Video**:
-```bash
-bash ./convert.sh --type screencast --resolutions "1920,1280" --verbose
-```
-
-**Film für Website (alle Varianten)**:
-```bash
-bash ./convert.sh --type film --square
-```
-
-**Social Media (nur Square)**:
-```bash
-bash ./convert.sh --type nature --variants "square"
-```
-
-**Action-Video mit 50% Größenreduktion**:
-```bash
-bash ./convert.sh --type action --variants "50percent"
+bash convert.sh --help
 ```
 
 ## Parameter
@@ -424,127 +697,100 @@ Platzeinsparung: 156.5 MB
 ═══════════════════════════════════════
 ```
 
-## Qualitätseinstellungen
+## Technische Details
 
-### 1. Video-Type-basierte CRF-Auswahl (Version 1.6.0)
+Für die meisten Nutzer ist dieses Wissen nicht erforderlich. Das Script funktioniert "out of the box".
 
-Das Skript wählt den optimalen Basis-CRF basierend auf dem Video-Typ:
+**Für Fortgeschrittene:** Detaillierte Informationen zu CRF-Berechnung, FFmpeg-Parametern, Algorithmen und Performance siehe [ADVANCED.md](ADVANCED.md).
 
-| Video-Typ | Basis-CRF | Anwendungsfall | Audio-Bitrate |
-|-----------|-----------|----------------|---------------|
-| **screencast** | 40 | Bildschirmaufnahmen, Präsentationen | 64 kbps |
-| **animation** | 37 | Animierte Videos, Motion Graphics | 96 kbps |
-| **nature** | 33 | Naturfilme, moderate Bewegung | 128 kbps |
-| **action** | 29 | Action-Szenen, schnelle Schnitte | 128 kbps |
-| **film** | 26 | Kinofilme, höchste Qualität | 160 kbps |
+### Kurz-Übersicht
 
-### 2. Bitrate-basierte CRF-Anpassung
+**Video-Type-Optimierung:**
+- Jeder Video-Typ (screencast, animation, nature, action, film) hat optimierte Einstellungen
+- CRF-Werte werden automatisch basierend auf Typ, Bitrate und Auflösung berechnet
+- Audio-Bitrate passt sich dem Content an (64-160 kbps)
 
-Der Basis-CRF wird zusätzlich basierend auf der Input-Bitrate angepasst:
+**50% Variante:**
+- Two-Pass Encoding für exakte Dateigröße (±5%)
+- Behält volle Auflösung bei halber Dateigröße
 
-| Input-Bitrate | CRF-Anpassung | Grund |
-|---------------|---------------|-------|
-| < 2 Mbps | -3 | Niedrige Bitrate → mehr komprimieren |
-| 2-5 Mbps | +0 | Normale Bitrate → Basis-CRF verwenden |
-| 5-10 Mbps | +4 | Hohe Bitrate → weniger komprimieren |
-| > 10 Mbps | +8 | Sehr hohe Bitrate → minimal komprimieren |
+**Qualitätsgarantie:**
+- WebM ist garantiert ≤ Original MP4/MOV
+- Automatische CRF-Anpassung bis optimales Ergebnis erreicht
+- Upscaling wird vermieden (keine 1400px Version für 720px Videos)
 
-**Beispiel:**
-- Film (Basis-CRF 26) mit 8 Mbps Input-Bitrate → finaler CRF 30 (26 + 4)
-- Screencast (Basis-CRF 40) mit 1.5 Mbps Input-Bitrate → finaler CRF 37 (40 - 3)
+**Performance:**
+- Nutzt alle CPU-Kerne automatisch
+- `--speed` Parameter für Geschwindigkeit vs. Qualität Trade-off
+- Typisch: ~0.3x realtime (3 Minuten für 1 Minute Video bei Speed 2)
 
-### 3. Resolutions-basierte CRF-Anpassung
+**Weitere Details:** [ADVANCED.md](ADVANCED.md)
 
-Für skalierte Versionen wird der CRF zusätzlich angepasst:
+## 🔄 Update-Anleitung
 
-| Resolution | CRF-Offset | Finaler CRF (Beispiel Film @ 5 Mbps) |
-|------------|------------|--------------------------------------|
-| Original | +0 | 26 |
-| 1400px | +2 | 28 |
-| 1000px | +3 | 29 |
-| 500px | +5 | 31 |
+### Wie aktualisiere ich das Script auf eine neue Version?
 
-Kleinere Auflösungen benötigen weniger Bits für dieselbe wahrgenommene Qualität.
+#### Variante 1: Mit Git (empfohlen)
 
-### 4. 50% Variante - Two-Pass Encoding
+Wenn Sie das Script via `git clone` installiert haben:
 
-Die 50%-Variante verwendet präzises Two-Pass Encoding:
+```bash
+# 1. Navigiere zum Script-Ordner
+cd ~/scripts/webmconverter  # oder dein Installationsort
 
-1. **Pass 1**: FFmpeg analysiert das Video und erstellt Statistik-Log
-2. **Bitrate-Berechnung**:
-   ```
-   Ziel-Bitrate = (Input-Dateigröße / 2) / Dauer
-   ```
-3. **Pass 2**: FFmpeg kodiert mit exakter Ziel-Bitrate
-4. **Resultat**: WebM-Datei mit ~50% Größe (±5%)
+# 2. Aktualisiere das Script
+git pull
 
-**Vorteile gegenüber CRF-Iteration:**
-- Präziser (2 Passes statt 3-6 Iterationen)
-- Schneller (weniger Re-Encodings)
-- Konsistentere Qualität
-
-### 5. Technische Optimierungen
-
-- **VP9-Codec** mit modernsten Einstellungen:
-  - `threads`: Dynamisch (basierend auf CPU-Kerne)
-  - `speed`: Konfigurierbar 0-5 (Standard: 2)
-  - `tile-columns 1`: Optimal für Portrait-Videos
-  - `row-mt 1`: Verbessertes Multi-Threading
-- **Opus-Audio**: Variabel 64-160 kbps (abhängig von Video-Type)
-- **Format-Enforcement**: `-f webm` für korrekte Container-Struktur
-
-### 6. Intelligente Dateigröße-Kontrolle
-
-Das Skript garantiert, dass WebM-Dateien ≤ Original MP4 sind:
-
-1. Erste Kodierung mit berechnetem CRF (Type + Bitrate + Resolution)
-2. Automatische CRF-Erhöhung um +3 wenn WebM > MP4
-3. Wiederholung bis WebM ≤ MP4 oder max. CRF 50 erreicht
-4. Überspringt Konvertierung falls nicht kleiner machbar
-
-**Typisches Beispiel:**
-```
-Film (2000px, 6 Mbps) → Original
-├─ Basis-CRF: 26 (film)
-├─ Bitrate-Adjustment: +4 (5-10 Mbps)
-├─ Start-CRF: 30
-├─ Iteration 1: CRF 30 → WebM 85% von MP4
-└─ ✅ Fertig (WebM < MP4)
+# 3. Zeige die neue Version an
+bash convert.sh --version
 ```
 
-## Quadratische Version Details
+**Das war's!** Git lädt automatisch die neueste Version herunter.
 
-Die quadratische 500px-Version verwendet intelligentes Zuschneiden:
-- Das Video wird zunächst so skaliert, dass es mindestens 500px in beide Richtungen hat
-- Anschließend wird es zentriert auf exakt 500x500 Pixel zugeschnitten
-- Das Ergebnis ist ein perfektes 1:1-Quadrat, ideal für Social Media Plattformen
+**Hinweis**: Eigene Änderungen am Script werden überschrieben. Wenn Sie das Script angepasst haben, erstellen Sie vorher ein Backup:
+```bash
+cp convert.sh convert.sh.backup
+```
 
-## Hinweise
+---
 
-### Performance
-- Die Konvertierung kann je nach Dateigröße, Video-Typ und Systemleistung einige Zeit dauern
-- **Two-Pass Encoding** (50% Variante) dauert länger, ist aber präziser
-- **`--speed`** Parameter ermöglicht Trade-off zwischen Geschwindigkeit und Kompression
-- **Threads** werden automatisch an CPU-Kerne angepasst
+#### Variante 2: Mit ZIP-Download
 
-### Qualität & Größe
-- WebM-Dateien sind **garantiert** kleiner oder gleich dem Original MP4
-- **Video-Type-Optimierung** sorgt für beste Qualität bei kleinster Dateigröße
-- Das Seitenverhältnis wird automatisch beibehalten
-- **Upscaling wird vermieden**: Keine 1400px Version für 800px breite Videos
-- **Bitrate-Detection** mit 3-Level-Fallback für robuste CRF-Auswahl
+Wenn Sie das Script als ZIP heruntergeladen haben:
 
-### Fehlerbehandlung
-- Audio-only Dateien werden automatisch übersprungen
-- Korrupte Dateien führen nicht zum Script-Abbruch
-- **Cleanup-Trap** entfernt Temp-Dateien bei Abbruch (Ctrl+C)
-- Detaillierte Statistik am Ende zeigt Erfolge und Fehler
+**Methode A - Komplett neu** (Sicher, aber umständlich):
+1. Gehe zu https://github.com/wwagner-net/convert.sh
+2. Download ZIP wie bei der Installation
+3. Entpacke `convert.sh-main.zip`
+4. Ersetze die alte `convert.sh` durch die neue
 
-### Ausgabe
-- **Verbose Mode** (`--verbose`): Zeigt vollständige FFmpeg-Ausgabe
-- **Dry-Run** (`--dry-run`): Simulation ohne tatsächliche Konvertierung
-- **Statistik**: Automatische Zusammenfassung mit Kompressionsrate und Platzeinsparung
-- Das Skript zeigt detaillierte Informationen über Dateigröße und verwendete CRF-Werte
+**Methode B - Nur Script ersetzen** (Schneller):
+1. Gehe zu https://github.com/wwagner-net/convert.sh
+2. Klicke auf `convert.sh`
+3. Klicke auf **Raw** (oben rechts)
+4. Rechtsklick → **Sichern unter** → Überschreibe alte `convert.sh`
+
+**Wichtig**: Ihre `input/` und `output/` Ordner bleiben erhalten!
+
+---
+
+#### Wie prüfe ich meine aktuelle Version?
+
+```bash
+bash convert.sh --version
+```
+
+Zeigt z.B.: `Version: 1.6.2`
+
+Vergleiche mit: https://github.com/wwagner-net/convert.sh/releases
+
+---
+
+#### Was ist neu in Version X.X.X?
+
+Siehe [CHANGELOG.md](CHANGELOG.md) für detaillierte Release Notes.
+
+---
 
 ## 🔧 Troubleshooting für Mac
 
