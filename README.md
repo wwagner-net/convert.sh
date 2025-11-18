@@ -31,6 +31,147 @@ WebM wird von nahezu allen modernen Browsern unterstützt mit einer Browser-Komp
 
 **Marktabdeckung**: Etwa 92-95% aller Webnutzer können WebM abspielen (Stand 2025)
 
+## 📥 Installation
+
+### Variante 1: ZIP-Download (Einfach - Empfohlen für Einsteiger)
+
+1. **Script herunterladen**:
+   - Gehe zu: https://github.com/wwagner-net/convert.sh
+   - Klicke auf den grünen **"Code"**-Button
+   - Wähle **"Download ZIP"**
+   - Die Datei `convert.sh-main.zip` wird heruntergeladen
+
+2. **ZIP entpacken**:
+   - Doppelklick auf `convert.sh-main.zip` im Downloads-Ordner
+   - macOS entpackt automatisch → Ordner `convert.sh-main` entsteht
+
+3. **Ordner verschieben und umbenennen** (optional, aber empfohlen):
+   ```
+   Empfohlener Speicherort:
+   /Users/IhrBenutzername/scripts/webmconverter
+   ```
+
+   **So geht's**:
+   - Öffne den Finder
+   - Gehe zu Ihrem Benutzerordner (Haus-Symbol in der Seitenleiste)
+   - Erstelle einen Ordner `scripts` (falls nicht vorhanden):
+     - Rechtsklick → **Neuer Ordner** → Name: `scripts`
+   - Verschiebe `convert.sh-main` in den `scripts`-Ordner
+   - Benenne `convert.sh-main` um in `webmconverter`:
+     - Rechtsklick auf den Ordner → **Umbenennen** → `webmconverter`
+
+4. **Weiter mit Quick Start** ↓
+
+---
+
+### Variante 2: Git Clone (Für Git-Nutzer)
+
+**Voraussetzung**: Git muss installiert sein (bei macOS meist vorinstalliert).
+
+1. **Terminal öffnen**:
+   - Drücke `Cmd + Leertaste`
+   - Tippe "Terminal" und drücke Enter
+
+2. **Zum gewünschten Ordner navigieren**:
+   ```bash
+   # Erstelle scripts-Ordner falls nicht vorhanden
+   mkdir -p ~/scripts
+
+   # Wechsle in den scripts-Ordner
+   cd ~/scripts
+   ```
+
+3. **Repository klonen**:
+   ```bash
+   git clone https://github.com/wwagner-net/convert.sh.git
+   ```
+
+   **Hinweis**: Das erstellt einen Ordner namens `convert.sh` (nicht `webmconverter`)
+
+4. **In den Ordner wechseln**:
+   ```bash
+   cd convert.sh
+   ```
+
+5. **Optional umbenennen** (für konsistente Pfade):
+   ```bash
+   # Aus dem Ordner rausgehen
+   cd ..
+
+   # Umbenennen zu webmconverter
+   mv convert.sh webmconverter
+
+   # Wieder reingehen
+   cd webmconverter
+   ```
+
+6. **Weiter mit Quick Start Schritt 2** ↓
+
+---
+
+### Wo sollte das Script liegen?
+
+**Empfohlene Speicherorte**:
+```
+✅ /Users/IhrBenutzername/scripts/webmconverter
+✅ /Users/IhrBenutzername/Documents/webmconverter
+✅ /Users/IhrBenutzername/Desktop/webmconverter
+```
+
+**Nicht empfohlen**:
+```
+❌ /Downloads/webmconverter  (wird oft aufgeräumt)
+❌ /Applications/webmconverter  (nur für installierte Apps)
+```
+
+**Tipp**: Der Pfad `~/scripts/webmconverter` ist in der Anleitung Standard - wenn Sie einen anderen Ort wählen, passen Sie die Pfade entsprechend an.
+
+---
+
+## 🚀 Quick Start für Mac
+
+### Schritt 1: Terminal öffnen
+1. Drücke `Cmd + Leertaste` um Spotlight zu öffnen
+2. Tippe "Terminal" und drücke Enter
+3. Ein schwarzes oder weißes Fenster öffnet sich
+
+### Schritt 2: FFmpeg installieren
+Kopiere diese Zeile ins Terminal und drücke Enter:
+```bash
+brew install ffmpeg
+```
+
+**Falls "brew: command not found" erscheint**, installiere zuerst Homebrew:
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
+*(Homebrew ist ein sicherer Paket-Manager für Mac, empfohlen von Apple-Entwicklern)*
+
+Danach nochmal `brew install ffmpeg` ausführen.
+
+### Schritt 3: Zum Script-Ordner navigieren
+```bash
+cd /Users/IhrBenutzername/scripts/webmconverter
+```
+*Ersetze "IhrBenutzername" mit Ihrem Mac-Benutzernamen (oder ziehe den Ordner ins Terminal)*
+
+**Tipp**: Ordner ins Terminal ziehen statt Pfad eintippen:
+1. Tippe `cd ` (mit Leerzeichen am Ende)
+2. Ziehe den `webmconverter`-Ordner aus dem Finder ins Terminal
+3. Drücke Enter
+
+### Schritt 4: Videos konvertieren
+1. Kopiere Ihre MP4/MOV-Dateien in den `input/` Ordner (wird automatisch erstellt)
+2. Führe das Script aus:
+```bash
+bash convert.sh
+```
+3. Fertige WebM-Dateien finden Sie im `output/` Ordner
+
+**Das war's!** Die konvertierten Videos sind nun bereit für Ihre Website.
+
+---
+
 ## Beschreibung
 
 Das Skript konvertiert alle MP4/MOV-Dateien aus dem `input/` Ordner in WebM-Format mit intelligenter Größenoptimierung:
@@ -404,6 +545,213 @@ Die quadratische 500px-Version verwendet intelligentes Zuschneiden:
 - **Dry-Run** (`--dry-run`): Simulation ohne tatsächliche Konvertierung
 - **Statistik**: Automatische Zusammenfassung mit Kompressionsrate und Platzeinsparung
 - Das Skript zeigt detaillierte Informationen über Dateigröße und verwendete CRF-Werte
+
+## 🔧 Troubleshooting für Mac
+
+### "brew: command not found"
+**Problem**: Homebrew ist noch nicht installiert.
+
+**Lösung**: Installiere Homebrew mit diesem Befehl:
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
+Das Script fragt nach Ihrem Mac-Passwort - das ist normal und sicher.
+
+Nach der Installation erscheint möglicherweise ein Hinweis wie:
+```
+==> Next steps:
+- Run these two commands in your terminal to add Homebrew to your PATH:
+```
+Führe die angezeigten Befehle aus (meist `echo` und `eval`), danach funktioniert `brew install ffmpeg`.
+
+---
+
+### "ffmpeg: command not found" oder "FFprobe nicht gefunden"
+**Problem**: FFmpeg ist nicht installiert oder nicht im PATH.
+
+**Lösung**:
+```bash
+brew install ffmpeg
+```
+
+Falls Homebrew bereits installiert ist, aktualisiere es:
+```bash
+brew update
+brew upgrade ffmpeg
+```
+
+**Prüfen ob FFmpeg funktioniert**:
+```bash
+ffmpeg -version
+```
+Sollte Versionsnummer anzeigen (z.B. "ffmpeg version 6.1.1").
+
+---
+
+### "Permission denied" beim Ausführen
+**Problem**: Das Script hat keine Ausführungsrechte.
+
+**Lösung**:
+```bash
+chmod +x convert.sh
+```
+
+Danach nochmal probieren:
+```bash
+bash convert.sh
+```
+
+---
+
+### "No such file or directory" beim cd-Befehl
+**Problem**: Der Pfad zum Script-Ordner ist falsch.
+
+**Lösung - Einfache Methode**:
+1. Öffne den `webmconverter`-Ordner im Finder
+2. Im Terminal tippe: `cd ` (mit Leerzeichen!)
+3. Ziehe den Ordner aus dem Finder ins Terminal-Fenster
+4. Drücke Enter
+
+**Lösung - Manuell**:
+```bash
+# Finde heraus wo du bist:
+pwd
+
+# Gehe zum Home-Verzeichnis:
+cd ~
+
+# Navigiere zum Script:
+cd scripts/webmconverter
+```
+
+---
+
+### "Operation not permitted" oder Sicherheitswarnung
+**Problem**: macOS Gatekeeper blockiert das Script.
+
+**Lösung**:
+1. Öffne **Systemeinstellungen** > **Datenschutz & Sicherheit**
+2. Scrolle nach unten zu "Sicherheit"
+3. Klicke auf **"Trotzdem erlauben"** neben der FFmpeg-Warnung
+4. Führe das Script erneut aus
+
+**Alternative**: Erlaube Terminal vollen Festplattenzugriff:
+1. **Systemeinstellungen** > **Datenschutz & Sicherheit**
+2. **Festplattenvollzugriff**
+3. Klicke auf **+** und füge **Terminal.app** hinzu
+
+---
+
+### Videos werden nicht gefunden
+**Problem**: Keine MP4/MOV-Dateien im `input/`-Ordner.
+
+**Lösung**:
+1. Prüfe ob du im richtigen Ordner bist:
+```bash
+pwd
+ls -la
+```
+Du solltest `convert.sh` sehen.
+
+2. Prüfe den input-Ordner:
+```bash
+ls -la input/
+```
+Sind dort `.mp4` oder `.mov` Dateien?
+
+3. Falls leer: Kopiere Videos in den input-Ordner:
+```bash
+# Ordner öffnen im Finder:
+open input/
+```
+Dann Videos per Drag & Drop hineinziehen.
+
+---
+
+### Script bricht mit "Error" ab
+**Problem**: Verschiedene Ursachen möglich.
+
+**Lösung - Debug-Modus aktivieren**:
+```bash
+bash convert.sh --verbose
+```
+Zeigt detaillierte FFmpeg-Ausgabe. Kopiere die Fehlermeldung für weitere Hilfe.
+
+**Häufige Ursachen**:
+- **Video korrupt**: Probiere andere Datei
+- **Kein Speicherplatz**: Prüfe `df -h` (mindestens 2x Video-Größe frei)
+- **Audio-only Datei**: Wird automatisch übersprungen
+- **Falsche Codec**: FFmpeg sollte alle gängigen Formate unterstützen
+
+---
+
+### "killed: 9" oder Script friert ein
+**Problem**: macOS hat den Prozess abgebrochen (meist bei großen Dateien).
+
+**Lösung**:
+1. **Reduziere Encoding-Speed** (nutzt weniger RAM):
+```bash
+bash convert.sh --speed 4
+```
+
+2. **Verarbeite Videos einzeln**: Verschiebe alle bis auf eine Datei aus `input/`
+
+3. **Prüfe Speicher**: Aktivitätsanzeige öffnen (Cmd+Leertaste → "Aktivitätsanzeige")
+   - Ist genug RAM frei? (mindestens 2-4 GB)
+
+---
+
+### WebM-Dateien sind größer als MP4
+**Problem**: Sollte nicht passieren - Script hat Size-Check.
+
+**Lösung**:
+1. **Prüfe Video-Typ**: Manche Inhalte komprimieren schlecht
+```bash
+bash convert.sh --type film  # Nutze höchste Qualität
+```
+
+2. **Manuell CRF testen**: Wenn `--verbose` zeigt "CRF 50 reached", ist das Video schon sehr komprimiert
+
+3. **Alternative**: Nutze 50%-Variante:
+```bash
+bash convert.sh --variants "50percent"
+```
+Garantiert 50% der Originalgröße.
+
+---
+
+### Terminal zeigt "zsh: command not found: bash"
+**Problem**: Unwahrscheinlich, aber Bash fehlt.
+
+**Lösung**: Moderne Macs nutzen zsh als Standard-Shell. Probiere:
+```bash
+zsh convert.sh
+```
+
+Oder nutze die Shebang im Script:
+```bash
+./convert.sh
+```
+(Erfordert `chmod +x convert.sh` vorher)
+
+---
+
+### "Ich verstehe die Terminal-Befehle nicht"
+**Kein Problem!** Hier die Grundlagen:
+
+- `cd ordnername`: **Change Directory** - Wechsle in einen Ordner
+- `ls`: **List** - Zeige Dateien im aktuellen Ordner
+- `pwd`: **Print Working Directory** - Wo bin ich gerade?
+- `bash script.sh`: Führe ein Bash-Script aus
+- `Ctrl+C`: Bricht laufenden Befehl ab
+- `Tab-Taste`: Auto-Vervollständigung (probiere `cd scr` + Tab)
+
+**Tipp**: Viele Befehle unterstützen `--help`:
+```bash
+bash convert.sh --help
+```
+
+---
 
 ## Nutzung im HTML (Beispiel)
 
