@@ -3,7 +3,7 @@
 # MP4/MOV zu WebM Konverter
 #
 # Autor: Wolfgang Wagner, wwagner@wwagner.net
-# Version: 1.6.2
+# Version: 1.7.0
 #
 # Beschreibung: Konvertiert MP4/MOV-Videos aus dem input/ Ordner in verschiedene WebM-Formate
 # mit unterschiedlichen Auflösungen und Qualitätseinstellungen.
@@ -13,7 +13,7 @@
 # Hilfsfunktion für --help
 show_help() {
     cat << EOF
-MP4/MOV zu WebM Konverter v1.6.2
+MP4/MOV zu WebM Konverter v1.7.0
 Autor: Wolfgang Wagner <wwagner@wwagner.net>
 
 VERWENDUNG:
@@ -93,6 +93,7 @@ AUSGABE:
     - video_1000px.webm
     - video_500px.webm
     - video_500px_square.webm (mit --square)
+    - video_thumbnail.webp (WebP Thumbnail bei 1 Sekunde)
 
 ABHÄNGIGKEITEN:
     - FFmpeg mit libvpx-vp9 und libopus Support
@@ -107,7 +108,7 @@ EOF
 }
 
 show_version() {
-    echo "MP4/MOV zu WebM Konverter v1.6.2"
+    echo "MP4/MOV zu WebM Konverter v1.7.0"
     exit 0
 }
 
@@ -231,6 +232,8 @@ STATS_CREATED_FILES=0
 STATS_SKIPPED_FILES=0
 STATS_INPUT_SIZE=0
 STATS_OUTPUT_SIZE=0
+STATS_THUMBNAILS_CREATED=0
+STATS_THUMBNAILS_FAILED=0
 
 # Cleanup-Funktion für temporäre Dateien
 cleanup_temp_files() {
@@ -239,6 +242,7 @@ cleanup_temp_files() {
     find "$OUTPUT_DIR" -name "*.tmp" -delete 2>/dev/null
     find "$OUTPUT_DIR" -name "*.best" -delete 2>/dev/null
     find "$OUTPUT_DIR" -name "*.log" -delete 2>/dev/null
+    find "$OUTPUT_DIR" -name "*.webp.tmp" -delete 2>/dev/null
     echo "✓ Temporäre Dateien entfernt"
     exit 130
 }
@@ -600,6 +604,66 @@ convert_to_50_percent() {
     return 0
 }
 
+# Thumbnail aus Video extrahieren (bei 1 Sekunde)
+extract_thumbnail() {
+    local input_file="$1"
+    local output_file="$2"
+
+    # Dry-run Check
+    if [[ "$DRY_RUN" == true ]]; then
+        echo "    [DRY-RUN] Würde erstellen: $output_file (WebP Thumbnail @ 1s)"
+        STATS_THUMBNAILS_CREATED=$((STATS_THUMBNAILS_CREATED + 1))
+        return 0
+    fi
+
+    # Video-Dauer ermitteln für Fallback bei kurzen Videos
+    local duration=$(ffprobe -v quiet -show_entries format=duration -of csv=s=x:p=0 "$input_file")
+
+    # Videos kürzer als 1s: Midpoint verwenden
+    local seek_time=1
+    if [[ -n "$duration" && "$duration" != "N/A" ]]; then
+        if (( $(awk "BEGIN {print ($duration < 1)}") )); then
+            seek_time=$(awk "BEGIN {print $duration / 2}")
+            echo "    ⚠ Video kürzer als 1s, verwende ${seek_time}s"
+        fi
+    fi
+
+    # Thumbnail extrahieren
+    local temp_output="${output_file}.tmp"
+
+    if [[ "$VERBOSE" == true ]]; then
+        ffmpeg -y -ss "$seek_time" -i "$input_file" -vframes 1 -c:v libwebp -quality 85 -f webp "$temp_output"
+    else
+        ffmpeg -y -ss "$seek_time" -i "$input_file" -vframes 1 -c:v libwebp -quality 85 -f webp "$temp_output" > /dev/null 2>&1
+    fi
+
+    local ffmpeg_success=$?
+
+    # Prüfen ob FFmpeg erfolgreich war
+    if [[ $ffmpeg_success -ne 0 || ! -f "$temp_output" ]]; then
+        echo "    ✗ Fehler beim Extrahieren des Thumbnails"
+        [[ -f "$temp_output" ]] && rm "$temp_output"
+        STATS_THUMBNAILS_FAILED=$((STATS_THUMBNAILS_FAILED + 1))
+        return 1
+    fi
+
+    # Finale Datei verschieben
+    if ! mv "$temp_output" "$output_file"; then
+        echo "    ✗ Fehler beim Verschieben des Thumbnails"
+        rm -f "$temp_output"
+        STATS_THUMBNAILS_FAILED=$((STATS_THUMBNAILS_FAILED + 1))
+        return 1
+    fi
+
+    # Dateigröße für Feedback
+    local thumb_size=$(stat -f%z "$output_file" 2>/dev/null || stat -c%s "$output_file" 2>/dev/null)
+    local thumb_size_kb=$(( thumb_size / 1024 ))
+
+    echo "    ✓ Thumbnail erstellt: ${thumb_size_kb} KB"
+    STATS_THUMBNAILS_CREATED=$((STATS_THUMBNAILS_CREATED + 1))
+    return 0
+}
+
 # Video-Anzahl ermitteln für Progress-Anzeige
 total_videos=$( (ls "$INPUT_DIR"/*.mp4 2>/dev/null; ls "$INPUT_DIR"/*.mov 2>/dev/null) | wc -l | xargs)
 current_video=0
@@ -625,6 +689,10 @@ for file in "$INPUT_DIR"/*.mp4 "$INPUT_DIR"/*.mov; do
         STATS_SKIPPED_FILES=$((STATS_SKIPPED_FILES + 1))
         continue
     fi
+
+    # Thumbnail extrahieren
+    echo "  → Extrahiere Thumbnail..."
+    extract_thumbnail "$file" "$OUTPUT_DIR/${name}_thumbnail.webp"
 
     # Video-Breite ermitteln
     video_width=$(ffprobe -v quiet -select_streams v:0 -show_entries stream=width -of csv=s=x:p=0 "$file")
@@ -865,6 +933,10 @@ echo ""
 echo "Videos verarbeitet:    $STATS_TOTAL_VIDEOS"
 echo "Dateien erstellt:      $STATS_CREATED_FILES"
 echo "Dateien übersprungen:  $STATS_SKIPPED_FILES"
+echo "Thumbnails erstellt:   $STATS_THUMBNAILS_CREATED"
+if [[ $STATS_THUMBNAILS_FAILED -gt 0 ]]; then
+    echo "Thumbnails fehlgeschlagen: $STATS_THUMBNAILS_FAILED"
+fi
 echo ""
 
 if [[ "$DRY_RUN" == false && $STATS_CREATED_FILES -gt 0 && $STATS_INPUT_SIZE -gt 0 ]]; then

@@ -4,7 +4,7 @@ Ein intelligentes Bash-Skript zur automatischen Konvertierung von MP4/MOV-Videos
 
 ## Autor
 Wolfgang Wagner (wwagner@wwagner.net)
-Version: 1.6.2
+Version: 1.7.0
 
 ---
 
@@ -439,8 +439,18 @@ Das Skript konvertiert alle MP4/MOV-Dateien aus dem `input/` Ordner in WebM-Form
 - **500px**: Skaliert auf 500px Breite (nur wenn Original > 500px)
 - **500px Square** (optional): Skaliert auf 500x500 Pixel im 1:1-Format
 - **Custom Resolutions**: Benutzerdefinierte Auflösungen mit `--resolutions`
+- **WebP Thumbnails**: Automatische Erstellung von WebP-Standbildern (bei 1 Sekunde) für jedes Video
 
-### 🆕 Neue Features in Version 1.6.0
+### 🆕 Neue Features in Version 1.7.0
+
+#### Automatische Thumbnail-Extraktion
+- **WebP Format**: Moderne, effiziente Bildkompression mit exzellenter Qualität
+- **1 Sekunde Timing**: Frame-Extraktion bei 1 Sekunde Video-Laufzeit (mit Fallback für kurze Videos)
+- **Original-Auflösung**: Thumbnails behalten die volle Video-Auflösung
+- **Ein Thumbnail pro Video**: Nicht pro Variante, sondern pro Input-Datei
+- **Automatisch**: Keine zusätzlichen Parameter nötig, funktioniert out-of-the-box
+
+### Neue Features in Version 1.6.0
 
 #### Intelligente Video-Type-Optimierung
 - **Video-Type Detection**: Automatische oder manuelle Erkennung des Video-Typs (screencast, animation, nature, action, film)
@@ -659,7 +669,8 @@ webmconverter/
     ├── video_1400px.webm
     ├── video_1000px.webm
     ├── video_500px.webm
-    └── video_500px_square.webm  # (nur mit --square)
+    ├── video_500px_square.webm  # (nur mit --square)
+    └── video_thumbnail.webp
 ```
 
 ## Ausgabe
@@ -671,6 +682,7 @@ Für jede `input.mp4` Datei im `input/` Ordner werden folgende WebM-Dateien im `
 - `input_1400px.webm` - 1400px Breite (nur wenn Original > 1400px)
 - `input_1000px.webm` - 1000px Breite (nur wenn Original > 1000px)
 - `input_500px.webm` - 500px Breite (nur wenn Original > 500px)
+- `input_thumbnail.webp` - WebP Thumbnail bei 1 Sekunde (Original-Auflösung)
 
 ### Mit --square Parameter zusätzlich:
 - `input_500px_square.webm` - 500x500 Pixel im 1:1-Format (zentriert zugeschnitten)
@@ -1001,10 +1013,10 @@ bash convert.sh --help
 
 ## Nutzung im HTML (Beispiel)
 
-### Responsive Video mit Media Queries
+### Responsive Video mit Media Queries und WebP Thumbnail
 
 ```html
-<video autoplay muted playsinline loop preload="metadata" class="video-bg" poster="thumbnail.jpg">
+<video autoplay muted playsinline loop preload="metadata" class="video-bg" poster="output/video_thumbnail.webp">
     <!-- Original für sehr große Displays -->
     <source media="(min-width: 1500px)" src="output/video_original.webm" type="video/webm">
 

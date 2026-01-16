@@ -10,10 +10,11 @@ This is a WebM Converter utility by Wolfgang Wagner - an intelligent Bash script
 
 **Single-script architecture**: The entire functionality is contained in `convert.sh` - a standalone Bash script that processes MP4/MOV files from an input directory and outputs to a separate directory.
 
-**Core functionality (Version 1.6.2)**:
+**Core functionality (Version 1.7.0)**:
 - Reads all `.mp4` and `.mov` files from the `input/` directory
 - Outputs converted files to the `output/` directory
 - Automatically creates `input/` and `output/` directories if they don't exist
+- **WebP Thumbnail extraction**: Automatically creates WebP thumbnails at 1 second for each video (original resolution)
 - **Intelligent resolution handling**: Only creates versions smaller than original (prevents upscaling)
 - **Automatic file size control**: Guarantees WebM files ≤ MP4/MOV size through adaptive CRF adjustment
 - **Video-type optimization**: CRF and audio bitrate based on content type (screencast, animation, nature, action, film)
@@ -103,8 +104,9 @@ For input file `input/example.mp4` or `input/example.mov`, the script generates 
 - `example_1000px.webm` - 1000px width (or custom)
 - `example_500px.webm` - 500px width (or custom)
 - `example_500px_square.webm` - Square variant (with --square)
+- `example_thumbnail.webp` - WebP thumbnail at 1 second (original resolution)
 
-## Quality Settings (Version 1.6.0)
+## Quality Settings (Version 1.7.0)
 
 ### Video-Type-Based CRF System
 Base CRF values depend on video content type:
@@ -166,7 +168,15 @@ The `convert_to_50_percent()` function uses two-pass encoding:
 
 ## Version History
 
-- **Version 1.6.2** (Current):
+- **Version 1.7.0** (Current):
+  - **Automatic WebP thumbnail extraction**: Creates WebP thumbnails at 1 second for each video
+  - **Original resolution thumbnails**: Preserves full video resolution for high-quality preview images
+  - **Smart fallback handling**: For videos < 1s, extracts frame at duration/2
+  - **Integrated statistics tracking**: Thumbnail creation counts in final summary
+  - **Dry-run support**: Thumbnail extraction respects --dry-run mode
+  - **Efficient WebP encoding**: Quality 85 for optimal size/quality balance
+
+- **Version 1.6.2**:
   - Added support for `.mov` files in addition to `.mp4`
   - Updated file detection to handle both formats
   - Improved error handling for mixed format directories
