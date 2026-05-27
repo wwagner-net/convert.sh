@@ -200,3 +200,7 @@ $RECYCLE.BIN/
 *.tmp
 .idea
 .claude
+
+# Swift build artifacts
+WebMConverterApp/.build/
+WebMConverterApp/build/

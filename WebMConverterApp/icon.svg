@@ -1,0 +1,147 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <!-- Background: deep space purple-black -->
+    <linearGradient id="bg" x1="0" y1="0" x2="1024" y2="1024" gradientUnits="userSpaceOnUse">
+      <stop offset="0%"   stop-color="#1C1240"/>
+      <stop offset="100%" stop-color="#090515"/>
+    </linearGradient>
+
+    <!-- Film strip band -->
+    <linearGradient id="film" x1="0" y1="0" x2="0" y2="1" gradientUnits="objectBoundingBox">
+      <stop offset="0%"   stop-color="#2B1D5E"/>
+      <stop offset="100%" stop-color="#160D38"/>
+    </linearGradient>
+
+    <!-- Play button: vivid purple → electric blue -->
+    <linearGradient id="play" x1="380" y1="340" x2="740" y2="690" gradientUnits="userSpaceOnUse">
+      <stop offset="0%"   stop-color="#B06EFF"/>
+      <stop offset="100%" stop-color="#2E9BFF"/>
+    </linearGradient>
+
+    <!-- WebM badge: same as play -->
+    <linearGradient id="badge" x1="320" y1="740" x2="700" y2="820" gradientUnits="userSpaceOnUse">
+      <stop offset="0%"   stop-color="#9B5AFF"/>
+      <stop offset="100%" stop-color="#2E9BFF"/>
+    </linearGradient>
+
+    <!-- Soft ambient glow -->
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="30" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+
+    <!-- Clip to macOS-style rounded rectangle -->
+    <clipPath id="frame">
+      <rect width="1024" height="1024" rx="226"/>
+    </clipPath>
+  </defs>
+
+  <g clip-path="url(#frame)">
+
+    <!-- ── Background ── -->
+    <rect width="1024" height="1024" fill="url(#bg)"/>
+
+    <!-- ── Subtle radial highlight in center ── -->
+    <radialGradient id="hl" cx="512" cy="512" r="420" gradientUnits="userSpaceOnUse">
+      <stop offset="0%"   stop-color="#3B2080" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#3B2080" stop-opacity="0"/>
+    </radialGradient>
+    <circle cx="512" cy="512" r="420" fill="url(#hl)"/>
+
+    <!-- ══════════════════════════════════════════
+         FILM STRIP — TOP
+    ══════════════════════════════════════════ -->
+    <rect x="0" y="0" width="1024" height="148" fill="url(#film)"/>
+    <!-- Separator line -->
+    <rect x="0" y="146" width="1024" height="2" fill="#4A2FA0" opacity="0.7"/>
+
+    <!-- Sprocket holes top (9 holes) -->
+    <g fill="#0C0820">
+      <circle cx="56"  cy="74" r="28"/>
+      <circle cx="168" cy="74" r="28"/>
+      <circle cx="280" cy="74" r="28"/>
+      <circle cx="392" cy="74" r="28"/>
+      <circle cx="512" cy="74" r="28"/>
+      <circle cx="632" cy="74" r="28"/>
+      <circle cx="744" cy="74" r="28"/>
+      <circle cx="856" cy="74" r="28"/>
+      <circle cx="968" cy="74" r="28"/>
+    </g>
+
+    <!-- ══════════════════════════════════════════
+         FILM STRIP — BOTTOM
+    ══════════════════════════════════════════ -->
+    <rect x="0" y="876" width="1024" height="148" fill="url(#film)"/>
+    <!-- Separator line -->
+    <rect x="0" y="876" width="1024" height="2" fill="#4A2FA0" opacity="0.7"/>
+
+    <!-- Sprocket holes bottom -->
+    <g fill="#0C0820">
+      <circle cx="56"  cy="950" r="28"/>
+      <circle cx="168" cy="950" r="28"/>
+      <circle cx="280" cy="950" r="28"/>
+      <circle cx="392" cy="950" r="28"/>
+      <circle cx="512" cy="950" r="28"/>
+      <circle cx="632" cy="950" r="28"/>
+      <circle cx="744" cy="950" r="28"/>
+      <circle cx="856" cy="950" r="28"/>
+      <circle cx="968" cy="950" r="28"/>
+    </g>
+
+    <!-- ══════════════════════════════════════════
+         PLAY BUTTON  (primary symbol)
+    ══════════════════════════════════════════ -->
+    <!-- Outer glow ring -->
+    <circle cx="512" cy="512" r="268" fill="url(#play)" opacity="0.10" filter="url(#glow)"/>
+
+    <!-- Thin circle outline -->
+    <circle cx="512" cy="512" r="252"
+            fill="none"
+            stroke="url(#play)"
+            stroke-width="5"
+            opacity="0.40"/>
+
+    <!-- Inner circle, very subtle fill -->
+    <circle cx="512" cy="512" r="245" fill="url(#play)" opacity="0.08"/>
+
+    <!-- The triangle – slightly offset right for optical balance -->
+    <!-- Vertices: left-top, left-bottom, right-center -->
+    <polygon
+      points="410,352  410,676  740,514"
+      fill="url(#play)"
+      filter="url(#glow)"
+    />
+
+    <!-- Thin stroke on triangle for crispness -->
+    <polygon
+      points="410,352  410,676  740,514"
+      fill="none"
+      stroke="white"
+      stroke-width="2"
+      stroke-linejoin="round"
+      opacity="0.20"
+    />
+
+    <!-- ══════════════════════════════════════════
+         WebM BADGE
+    ══════════════════════════════════════════ -->
+    <!-- Badge pill -->
+    <rect x="322" y="740" width="380" height="74" rx="37" fill="url(#badge)"/>
+    <!-- Badge inner highlight -->
+    <rect x="324" y="742" width="376" height="36" rx="18"
+          fill="white" opacity="0.12"/>
+
+    <!-- WebM text -->
+    <text
+      x="512" y="792"
+      font-family="'SF Pro Display', -apple-system, 'Helvetica Neue', Arial, sans-serif"
+      font-size="46"
+      font-weight="800"
+      fill="white"
+      text-anchor="middle"
+      dominant-baseline="middle"
+      letter-spacing="1"
+    >WebM</text>
+
+  </g>
+</svg>
