@@ -132,21 +132,19 @@ class FFmpegService {
         return max(23, min(50, crf))
     }
 
-    // MARK: - Thumbnail Extraction (native AVFoundation + ImageIO)
+    // MARK: - Thumbnail Extraction
     //
-    // Does NOT use FFmpeg – the Homebrew FFmpeg formula no longer includes
-    // libwebp by default.  We extract the frame via AVFoundation and write it
-    // through ImageIO.  Format priority:
-    //   1. WebP  – preferred (works when macOS ImageIO supports it)
-    //   2. JPEG  – universal fallback
+    // Priority:
+    //   1. FFmpeg WebP  – fast (~13 KB), preferred when ffmpeg has --enable-libwebp
+    //   2. ImageIO WebP – when macOS ImageIO supports WebP writing
+    //   3. ImageIO JPEG – universal fallback, always works
     //
-    // The output URL's extension is rewritten to match the format actually used.
-    // Returns the URL of the written thumbnail file (may differ from `output`).
+    // The output filename extension is adjusted to match the format actually used.
 
     @discardableResult
     func extractThumbnail(
         input: URL,
-        output: URL,           // preferred path; extension may be overridden
+        output: URL,
         duration: Double,
         dryRun: Bool,
         log: @escaping (String) -> Void
@@ -157,9 +155,40 @@ class FFmpegService {
         }
 
         let seekTime = duration >= 1.0 ? 1.0 : max(0.0, duration / 2.0)
-        let cmTime   = CMTime(seconds: seekTime, preferredTimescale: 600)
+        let seekStr  = String(format: "%.3f", seekTime)
+        let base     = output.deletingPathExtension()
 
-        // ── 1. Extract video frame ────────────────────────────────────────
+        // ── Strategy 1: FFmpeg WebP ───────────────────────────────────────
+        // Temp file must end in .webp so FFmpeg picks the webp muxer.
+        let ffmpegTmp = base.appendingPathExtension("tmp.webp")
+        let webpOut   = base.appendingPathExtension("webp")
+
+        let (ffCode, ffErr) = try await runFFmpegCapturing(args: [
+            "-y", "-ss", seekStr, "-i", input.path,
+            "-vframes", "1", "-q:v", "85",
+            ffmpegTmp.path
+        ])
+
+        if ffCode == 0, FileManager.default.fileExists(atPath: ffmpegTmp.path) {
+            if FileManager.default.fileExists(atPath: webpOut.path) {
+                try? FileManager.default.removeItem(at: webpOut)
+            }
+            try FileManager.default.moveItem(at: ffmpegTmp, to: webpOut)
+            let kb = (try? fileBytes(webpOut)).map { "\($0 / 1024) KB" } ?? "?"
+            log("  ✓ Thumbnail (WebP): \(kb)  → \(webpOut.lastPathComponent)")
+            return true
+        }
+
+        // FFmpeg failed – log a concise reason and try native fallback
+        try? FileManager.default.removeItem(at: ffmpegTmp)
+        let ffDetail = ffErr.components(separatedBy: "\n")
+            .filter { !$0.trimmingCharacters(in: .whitespaces).isEmpty }.last ?? ""
+        log("  ⚠ FFmpeg WebP fehlgeschlagen (exit \(ffCode))" +
+            (ffDetail.isEmpty ? "" : ": \(ffDetail)"))
+        log("  → Fallback auf native ImageIO …")
+
+        // ── Strategy 2 & 3: AVFoundation frame + ImageIO write ───────────
+        let cmTime    = CMTime(seconds: seekTime, preferredTimescale: 600)
         let asset     = AVURLAsset(url: input)
         let generator = AVAssetImageGenerator(asset: asset)
         generator.appliesPreferredTrackTransform = true
@@ -179,33 +208,26 @@ class FFmpegService {
             }
         }
 
-        // ── 2. Write via ImageIO: try AVIF, fall back to JPEG ─────────────
         let candidates: [(uti: CFString, ext: String)] = [
-            ("org.webmproject.webp" as CFString, "webp"),  // preferred; requires macOS with WebP write support
-            ("public.jpeg"          as CFString, "jpg"),   // universal fallback
+            ("org.webmproject.webp" as CFString, "webp"),
+            ("public.jpeg"          as CFString, "jpg"),
         ]
-
         for (uti, ext) in candidates {
-            let dest_url = output.deletingPathExtension().appendingPathExtension(ext)
-            if FileManager.default.fileExists(atPath: dest_url.path) {
-                try? FileManager.default.removeItem(at: dest_url)
+            let destURL = base.appendingPathExtension(ext)
+            if FileManager.default.fileExists(atPath: destURL.path) {
+                try? FileManager.default.removeItem(at: destURL)
             }
-            guard let dest = CGImageDestinationCreateWithURL(
-                dest_url as CFURL, uti, 1, nil
-            ) else { continue }
-
-            CGImageDestinationAddImage(
-                dest, cgImage,
-                [kCGImageDestinationLossyCompressionQuality: 0.85] as CFDictionary
-            )
+            guard let dest = CGImageDestinationCreateWithURL(destURL as CFURL, uti, 1, nil)
+            else { continue }
+            CGImageDestinationAddImage(dest, cgImage,
+                [kCGImageDestinationLossyCompressionQuality: 0.85] as CFDictionary)
             guard CGImageDestinationFinalize(dest) else { continue }
-
-            let kb = (try? fileBytes(dest_url)).map { "\($0 / 1024) KB" } ?? "?"
-            log("  ✓ Thumbnail (\(ext.uppercased())): \(kb)  → \(dest_url.lastPathComponent)")
+            let kb = (try? fileBytes(destURL)).map { "\($0 / 1024) KB" } ?? "?"
+            log("  ✓ Thumbnail (\(ext.uppercased())): \(kb)  → \(destURL.lastPathComponent)")
             return true
         }
 
-        log("  ✗ Thumbnail konnte nicht erstellt werden (kein unterstütztes Format)")
+        log("  ✗ Thumbnail konnte nicht erstellt werden")
         return false
     }
 
