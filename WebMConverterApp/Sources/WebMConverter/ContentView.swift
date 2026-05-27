@@ -59,6 +59,10 @@ struct ContentView: View {
         .onDrop(of: [UTType.fileURL], isTargeted: $isDropTargeted) { providers in
             handleDrop(providers: providers)
         }
+        // Receive open-settings request from the menu bar (⌘,)
+        .onReceive(NotificationCenter.default.publisher(for: .openSettings)) { _ in
+            showSettings = true
+        }
     }
 
     // MARK: - Toolbar
@@ -98,8 +102,7 @@ struct ContentView: View {
                     .font(.body)
             }
             .buttonStyle(.plain)
-            .help("Einstellungen")
-            .keyboardShortcut(",", modifiers: .command)
+            .help("Einstellungen  ⌘,")
 
             // Log toggle
             Button {
