@@ -1,4 +1,7 @@
 import Foundation
+import AVFoundation
+import ImageIO
+import UniformTypeIdentifiers
 
 // MARK: - Video Info
 
@@ -129,11 +132,21 @@ class FFmpegService {
         return max(23, min(50, crf))
     }
 
-    // MARK: - Thumbnail Extraction
+    // MARK: - Thumbnail Extraction (native AVFoundation + ImageIO)
+    //
+    // Does NOT use FFmpeg – the Homebrew FFmpeg formula no longer includes
+    // libwebp by default.  We extract the frame via AVFoundation and write it
+    // through ImageIO.  Format priority:
+    //   1. WebP  – preferred (works when macOS ImageIO supports it)
+    //   2. JPEG  – universal fallback
+    //
+    // The output URL's extension is rewritten to match the format actually used.
+    // Returns the URL of the written thumbnail file (may differ from `output`).
 
+    @discardableResult
     func extractThumbnail(
         input: URL,
-        output: URL,
+        output: URL,           // preferred path; extension may be overridden
         duration: Double,
         dryRun: Bool,
         log: @escaping (String) -> Void
@@ -144,27 +157,56 @@ class FFmpegService {
         }
 
         let seekTime = duration >= 1.0 ? 1.0 : max(0.0, duration / 2.0)
-        let seekStr  = String(format: "%.3f", seekTime)
-        let tmp      = output.appendingPathExtension("tmp")
+        let cmTime   = CMTime(seconds: seekTime, preferredTimescale: 600)
 
-        let code = try await runFFmpeg(args: [
-            "-y", "-ss", seekStr, "-i", input.path,
-            "-vframes", "1", "-c:v", "libwebp", "-quality", "85",
-            "-f", "webp", tmp.path
-        ])
+        // ── 1. Extract video frame ────────────────────────────────────────
+        let asset     = AVURLAsset(url: input)
+        let generator = AVAssetImageGenerator(asset: asset)
+        generator.appliesPreferredTrackTransform = true
+        generator.requestedTimeToleranceBefore   = CMTime(seconds: 1, preferredTimescale: 600)
+        generator.requestedTimeToleranceAfter    = CMTime(seconds: 1, preferredTimescale: 600)
 
-        guard code == 0, FileManager.default.fileExists(atPath: tmp.path) else {
-            try? FileManager.default.removeItem(at: tmp)
-            log("  ✗ Thumbnail-Fehler (exit \(code))")
-            return false
+        let cgImage: CGImage = try await withCheckedThrowingContinuation { cont in
+            generator.generateCGImageAsynchronously(for: cmTime) { image, _, error in
+                if let err = error { cont.resume(throwing: err); return }
+                guard let img = image else {
+                    cont.resume(throwing: NSError(
+                        domain: "Thumbnail", code: 1,
+                        userInfo: [NSLocalizedDescriptionKey: "Kein Frame extrahiert"]))
+                    return
+                }
+                cont.resume(returning: img)
+            }
         }
-        if FileManager.default.fileExists(atPath: output.path) {
-            try? FileManager.default.removeItem(at: output)
+
+        // ── 2. Write via ImageIO: try AVIF, fall back to JPEG ─────────────
+        let candidates: [(uti: CFString, ext: String)] = [
+            ("org.webmproject.webp" as CFString, "webp"),  // preferred; requires macOS with WebP write support
+            ("public.jpeg"          as CFString, "jpg"),   // universal fallback
+        ]
+
+        for (uti, ext) in candidates {
+            let dest_url = output.deletingPathExtension().appendingPathExtension(ext)
+            if FileManager.default.fileExists(atPath: dest_url.path) {
+                try? FileManager.default.removeItem(at: dest_url)
+            }
+            guard let dest = CGImageDestinationCreateWithURL(
+                dest_url as CFURL, uti, 1, nil
+            ) else { continue }
+
+            CGImageDestinationAddImage(
+                dest, cgImage,
+                [kCGImageDestinationLossyCompressionQuality: 0.85] as CFDictionary
+            )
+            guard CGImageDestinationFinalize(dest) else { continue }
+
+            let kb = (try? fileBytes(dest_url)).map { "\($0 / 1024) KB" } ?? "?"
+            log("  ✓ Thumbnail (\(ext.uppercased())): \(kb)  → \(dest_url.lastPathComponent)")
+            return true
         }
-        try FileManager.default.moveItem(at: tmp, to: output)
-        let kb = (try? fileBytes(output)).map { "\($0 / 1024) KB" } ?? "?"
-        log("  ✓ Thumbnail: \(kb)")
-        return true
+
+        log("  ✗ Thumbnail konnte nicht erstellt werden (kein unterstütztes Format)")
+        return false
     }
 
     // MARK: - Standard Conversion (with iterative CRF size-check)
@@ -401,12 +443,34 @@ class FFmpegService {
         try await runAsync(ffmpegPath, args: args)
     }
 
+    /// Runs FFmpeg and returns (exitCode, stderrOutput).
+    /// Use this where the error message is needed for diagnostics.
+    private func runFFmpegCapturing(args: [String]) async throws -> (Int32, String) {
+        try await withCheckedThrowingContinuation { continuation in
+            let process = Process()
+            process.executableURL = URL(fileURLWithPath: ffmpegPath)
+            process.arguments = args
+            process.standardOutput = Pipe()
+            let errPipe = Pipe()
+            process.standardError = errPipe
+            process.terminationHandler = { p in
+                let data = errPipe.fileHandleForReading.readDataToEndOfFile()
+                let text = String(data: data, encoding: .utf8) ?? ""
+                continuation.resume(returning: (p.terminationStatus, text))
+            }
+            do {
+                try process.run()
+            } catch {
+                continuation.resume(throwing: error)
+            }
+        }
+    }
+
     func runAsync(_ path: String, args: [String]) async throws -> Int32 {
         try await withCheckedThrowingContinuation { continuation in
             let process = Process()
             process.executableURL = URL(fileURLWithPath: path)
             process.arguments = args
-            // Suppress output – progress parsing via stderr would be added here
             process.standardOutput = Pipe()
             process.standardError  = Pipe()
             process.terminationHandler = { p in
